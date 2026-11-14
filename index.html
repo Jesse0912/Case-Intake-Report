@@ -37,7 +37,6 @@
       line-height: 1.5;
     }
 
-    /* Header & API Bar */
     header {
       background: var(--primary);
       color: #ffffff;
@@ -99,7 +98,6 @@
       background: var(--primary-light);
     }
 
-    /* Layout Grid */
     .main-container {
       display: grid;
       grid-template-columns: 1.18fr 0.82fr;
@@ -127,7 +125,6 @@
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
     }
 
-    /* Banner & Dummy Loader */
     .demo-banner {
       background: var(--warn-bg);
       border: 1px solid var(--warn-border);
@@ -150,7 +147,6 @@
       align-items: center;
     }
 
-    /* Form Sections */
     .panel-header {
       display: flex;
       justify-content: space-between;
@@ -264,7 +260,6 @@
       min-height: 52px;
     }
 
-    /* Chips */
     .chip-group {
       display: flex;
       flex-wrap: wrap;
@@ -296,7 +291,6 @@
       cursor: pointer;
     }
 
-    /* Buttons */
     .btn-row {
       display: flex;
       gap: 10px;
@@ -356,7 +350,6 @@
       border-color: var(--primary);
     }
 
-    /* Right Output Panel */
     .sticky-panel {
       position: sticky;
       top: 16px;
@@ -682,7 +675,7 @@
       </div>
 
       <div class="field">
-        <label class="field-label" for="extraNotes">額外補充速記 (供 AnythingLLM 整合潤飾)</label>
+        <label class="field-label" for="extraNotes">額外補充速記 (供 AnythingLLM 整合至對應欄位)</label>
         <textarea id="extraNotes" placeholder="如有其他特殊背景、多次出入院時間線或BPSD行為，可在此補充..."></textarea>
       </div>
     </div>
@@ -842,7 +835,6 @@
     }
   };
 
-  // DOM 元件快取
   const el = {};
   const cacheElements = () => {
     const ids = [
@@ -860,7 +852,6 @@
     });
   };
 
-  // 純文字清理與轉換工具函式
   const normalizeTerms = (raw) => {
     if (!raw) return '';
     return String(raw)
@@ -911,7 +902,6 @@
     });
   };
 
-  // 模式切換 (同住 vs 獨居)
   const updateModeUI = (mode) => {
     const isSolo = (mode === 'solo');
     el.modeFamilyCard.classList.toggle('active', !isSolo);
@@ -923,7 +913,6 @@
     el.soloSupportField.classList.toggle('hidden', !isSolo);
   };
 
-  // 狀態套用與讀取
   const applyState = (state) => {
     updateModeUI(state.caseMode);
     el.occupation.value = state.occupation;
@@ -1015,7 +1004,6 @@
     return `－ ${goodTimeStr}，睡醒後感覺有精神。`;
   };
 
-  // 核心確定性報告組裝引擎 (100% 零幻覺保證)
   const compileReportText = (state) => {
     const jobSentence = formatOccupationSentence(state.occupation);
     const livingClean = stripTrailingPunctuation(state.livingArrangement) || '[待補充：婚姻及同住安排]';
@@ -1097,7 +1085,6 @@ ${followUpServiceLine}
 － 跟進案主身心狀況`;
     }
 
-    // 同住／有照顧者模式 (Family / Maid Co-Care Mode)
     const hasMaidSupport = state.carerStress === 'low_maid' || state.supportNetwork.includes('傭人');
     const carerProblemClause = state.carerStress === 'high'
       ? `同住${state.mainCarer}感照顧吃力，擔心日後難以持續照顧案主`
@@ -1164,14 +1151,12 @@ ${followUpServiceLine}
 － 關顧護老者照顧狀況`;
   };
 
-  // 產生 0 秒確定性報告
   const handleInstantDraft = () => {
     const state = readCurrentState();
     el.reportOutput.value = compileReportText(state);
     el.genStatus.textContent = '⚡ 已產生即時初稿';
   };
 
-  // 讀取 AnythingLLM 工作區清單
   const loadWorkspaces = async (preselectSlug = '') => {
     const baseUrl = el.apiUrl.value.trim().replace(/\/$/, '');
     const apiKey = el.apiKey.value.trim();
@@ -1222,7 +1207,7 @@ ${followUpServiceLine}
     }
   };
 
-  // 呼叫 AnythingLLM (先自動 /reset 清空舊記憶，再發送結構化初稿)
+  // 送交 AnythingLLM：使用獨立 sessionId 隔離記憶，並對齊【輸出結構】標籤
   const handleAiGenerate = async () => {
     const baseUrl = el.apiUrl.value.trim().replace(/\/$/, '');
     const apiKey = el.apiKey.value.trim();
@@ -1237,24 +1222,13 @@ ${followUpServiceLine}
     const baseDraft = compileReportText(state);
     const extraClean = stripTrailingPunctuation(state.extraNotes);
 
-    const promptForQwen = `請嚴格按照系統設定的核心規則，將以下已核對的接案報告初稿進行語句潤飾，使其通順自然（必須100%保留所有「[待補充：...]」標記、11個標準標題及「－ 」條列格式，嚴禁自行編造未提及的資料，嚴禁輸出（LTC）或任何解釋性備註）：
+    const promptForQwen = `請嚴格按照以下【輸出結構】完整輸出11個標準標題及所有條列內容（必須100%保留11個標題名稱、保留「[待補充：...]」字眼，直接由「求助問題：*」開始輸出，切勿刪減任何標題）：
 
-【已核對之報告初稿】：
-${baseDraft}${extraClean ? `\n\n【額外補充速記（請自然融入對應欄位）】：\n${extraClean}。` : ''}`;
+【輸出結構】
+${baseDraft}${extraClean ? `\n\n【社工速記內容（請將此補充自然融入上述對應欄位中，保持11個標題結構不變）】：\n${extraClean}。` : ''}`;
 
     try {
       el.btnAiGenerate.disabled = true;
-      el.genStatus.textContent = '🧹 正在清除舊對話記憶 (/reset)...';
-
-      await fetch(`${baseUrl}/api/v1/workspace/${slug}/chat`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ message: '/reset', mode: 'chat' })
-      });
-
       el.genStatus.textContent = '🤖 Qwen3-4B 生成中 (約需 2-3 分鐘)...';
       el.reportOutput.value = '正在由本機 Qwen3-4B-Instruct 生成報告中，請稍候...\n\n（提示：您亦隨時可點擊左側「⚡ 1. 即時組合標準初稿」取得 0 秒免等待版本）';
 
@@ -1264,7 +1238,11 @@ ${baseDraft}${extraClean ? `\n\n【額外補充速記（請自然融入對應欄
           'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ message: promptForQwen, mode: 'chat' })
+        body: JSON.stringify({
+          message: promptForQwen,
+          mode: 'chat',
+          sessionId: `edecc-case-${Date.now()}`
+        })
       });
 
       if (!response.ok) {
@@ -1276,8 +1254,17 @@ ${baseDraft}${extraClean ? `\n\n【額外補充速記（請自然融入對應欄
         .replace(/<think>[\s\S]*?<\/think>/gi, '')
         .trim();
 
-      el.reportOutput.value = cleanedOutput || baseDraft;
-      el.genStatus.textContent = '✅ AI 潤飾完成';
+      // 安全防線：若模型輸出少於8個標準標題，自動回退至完整確定性初稿
+      const requiredHeaders = ['求助問題：*', '背景資料：*', '健康狀況', '情緒狀況', '經濟狀況：', '居住狀況：', '跟進計劃：*'];
+      const hasAllHeaders = requiredHeaders.every(h => cleanedOutput.includes(h));
+
+      if (!hasAllHeaders) {
+        el.reportOutput.value = baseDraft;
+        el.genStatus.textContent = '⚡ 已自動鎖定標準11項格式';
+      } else {
+        el.reportOutput.value = cleanedOutput;
+        el.genStatus.textContent = '✅ AI 潤飾完成';
+      }
     } catch (err) {
       el.genStatus.textContent = '⚠️ AI 連線異常 (已切換為標準初稿)';
       el.reportOutput.value = baseDraft;
@@ -1287,7 +1274,6 @@ ${baseDraft}${extraClean ? `\n\n【額外補充速記（請自然融入對應欄
     }
   };
 
-  // 複製報告至剪貼簿 (相容 https:// 與 file://)
   const handleCopyReport = async () => {
     const content = el.reportOutput.value.trim();
     if (!content) return;
@@ -1301,9 +1287,7 @@ ${baseDraft}${extraClean ? `\n\n【額外補充速記（請自然融入對應欄
     el.genStatus.textContent = '📋 已複製到剪貼簿！';
   };
 
-  // 綁定所有事件監聽器
   const bindEvents = () => {
-    // 模式切換
     document.querySelectorAll('input[name="caseMode"]').forEach(radio => {
       radio.addEventListener('change', (e) => {
         const newMode = e.target.value;
@@ -1317,7 +1301,6 @@ ${baseDraft}${extraClean ? `\n\n【額外補充速記（請自然融入對應欄
       });
     });
 
-    // 一鍵勾選三高
     el.cbThreeHighs.addEventListener('change', (e) => {
       const isChecked = e.target.checked;
       document.querySelectorAll('.disease-cb').forEach(cb => {
@@ -1327,7 +1310,6 @@ ${baseDraft}${extraClean ? `\n\n【額外補充速記（請自然融入對應欄
       });
     });
 
-    // 單別慢病變更時同步「三高」勾選狀態
     document.querySelectorAll('.disease-cb').forEach(cb => {
       cb.addEventListener('change', () => {
         const currentDiseases = getCheckedValues('.disease-cb');
@@ -1335,21 +1317,18 @@ ${baseDraft}${extraClean ? `\n\n【額外補充速記（請自然融入對應欄
       });
     });
 
-    // 自訂醫院顯示切換
     el.hospital.addEventListener('change', () => {
       const isCustom = el.hospital.value === 'custom';
       el.hospitalCustom.classList.toggle('hidden', !isCustom);
       if (isCustom) el.hospitalCustom.focus();
     });
 
-    // 照顧壓力選擇「有傭人分擔」時自動勾選支援網絡「傭人」
     el.carerStress.addEventListener('change', () => {
       if (el.carerStress.value === 'low_maid') {
         el.netMaid.checked = true;
       }
     });
 
-    // 虛擬測試個案按鈕
     document.querySelectorAll('[data-dummy]').forEach(btn => {
       btn.addEventListener('click', () => {
         const caseId = Number(btn.getAttribute('data-dummy'));
@@ -1361,7 +1340,6 @@ ${baseDraft}${extraClean ? `\n\n【額外補充速記（請自然融入對應欄
       });
     });
 
-    // 清空表單
     el.btnResetForm.addEventListener('click', () => {
       if (confirm('確定要清空目前表單內容以輸入新個案嗎？')) {
         applyState(DEFAULT_STATE);
@@ -1370,19 +1348,16 @@ ${baseDraft}${extraClean ? `\n\n【額外補充速記（請自然融入對應欄
       }
     });
 
-    // 頂部 API 連線與工作區儲存
     el.btnLoadWorkspaces.addEventListener('click', () => loadWorkspaces());
     el.workspaceSlug.addEventListener('change', () => {
       localStorage.setItem(STORAGE_KEYS.SLUG, el.workspaceSlug.value);
     });
 
-    // 生成與複製按鈕
     el.btnInstantDraft.addEventListener('click', handleInstantDraft);
     el.btnAiGenerate.addEventListener('click', handleAiGenerate);
     el.btnCopyReport.addEventListener('click', handleCopyReport);
   };
 
-  // 初始化應用程式
   document.addEventListener('DOMContentLoaded', () => {
     cacheElements();
     bindEvents();
