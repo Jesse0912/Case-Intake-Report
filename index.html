@@ -1,22 +1,28 @@
-<!doctype html>
-<html lang="zh-Hant">
+<!DOCTYPE html>
+<html lang="zh-HK">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <title>Intake Report</title>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EDECC 個案接案報告助手 (離線結構化及 AI 輔助版)</title>
   <style>
     :root {
-      --background: #f7f7f5;
-      --surface: #ffffff;
-      --text: #2c2c2b;
-      --secondary: #6f6d68;
-      --border: #e6e5e3;
-      --blue: #2783de;
-      --blue-soft: #e5f2fc;
-      --green: #2f7d55;
-      --green-soft: #e8f1ec;
+      --bg: #f5f5f2;
+      --card: #ffffff;
+      --section-bg: #fafaf8;
+      --primary: #2b594c;
+      --primary-hover: #1e4238;
+      --primary-light: #e6f0ec;
+      --accent: #d47230;
+      --accent-hover: #b85d20;
+      --warn-bg: #fff8eb;
+      --warn-border: #edd29f;
+      --warn-text: #8c5311;
+      --text: #28302d;
+      --muted: #636e69;
+      --border: #d8dedb;
+      --radius-lg: 10px;
+      --radius-md: 7px;
+      --radius-sm: 5px;
     }
 
     * {
@@ -25,1568 +31,1374 @@
 
     body {
       margin: 0;
+      font-family: "Microsoft JhengHei", "PingFang HK", "Noto Sans TC", sans-serif;
+      background-color: var(--bg);
       color: var(--text);
-      background: var(--background);
-      font-family: Arial, "Noto Sans TC", sans-serif;
-      font-size: 16px;
       line-height: 1.5;
     }
 
-    button,
-    input,
-    textarea {
-      font: inherit;
-    }
-
-    button:focus-visible,
-    input:focus-visible,
-    textarea:focus-visible {
-      outline: 3px solid rgba(39, 131, 222, 0.3);
-      outline-offset: 2px;
-    }
-
-    .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      min-height: 64px;
-      padding: 10px 24px;
+    /* Header & API Bar */
+    header {
+      background: var(--primary);
+      color: #ffffff;
+      padding: 12px 24px;
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      gap: 16px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     }
 
-    .brand {
+    header h1 {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .api-bar {
       display: flex;
       align-items: center;
-      gap: 12px;
-    }
-
-    .logo {
-      width: 38px;
-      height: 38px;
-      display: grid;
-      place-items: center;
-      flex-shrink: 0;
-      color: white;
-      background: var(--text);
-      border-radius: 9px;
-      font-weight: 700;
-    }
-
-    .brand h1 {
-      margin: 0;
-      font-size: 19px;
-    }
-
-    .brand p {
-      margin: 1px 0 0;
-      color: var(--secondary);
-      font-size: 13px;
-    }
-
-    .actions {
-      display: flex;
       gap: 8px;
+      flex-wrap: wrap;
+      background: rgba(255, 255, 255, 0.12);
+      padding: 6px 12px;
+      border-radius: var(--radius-md);
+      font-size: 0.84rem;
     }
 
-    .button {
-      min-height: 44px;
-      padding: 9px 14px;
+    .api-bar label {
+      font-weight: 500;
+    }
+
+    .api-bar input,
+    .api-bar select {
+      padding: 5px 8px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      font-size: 0.84rem;
+      width: auto;
+      background: #ffffff;
       color: var(--text);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
+    }
+
+    .api-bar button {
+      background: #ffffff;
+      color: var(--primary);
+      border: none;
+      padding: 5px 11px;
+      border-radius: var(--radius-sm);
       cursor: pointer;
+      font-weight: 600;
+      font-size: 0.84rem;
+      transition: background 0.15s ease;
     }
 
-    .button:hover {
-      background: var(--background);
+    .api-bar button:hover {
+      background: var(--primary-light);
     }
 
-    .button.primary {
-      color: white;
-      background: var(--blue);
-      border-color: var(--blue);
-      font-weight: 700;
-    }
-
-    .layout {
-      max-width: 1440px;
-      margin: 0 auto;
-      padding: 16px;
+    /* Layout Grid */
+    .main-container {
       display: grid;
-      grid-template-columns: 220px minmax(0, 1fr) 400px;
-      gap: 16px;
+      grid-template-columns: 1.18fr 0.82fr;
+      gap: 20px;
+      max-width: 1520px;
+      margin: 18px auto;
+      padding: 0 18px 40px;
+    }
+
+    @media (max-width: 1080px) {
+      .main-container {
+        grid-template-columns: 1fr;
+      }
+      .sticky-panel {
+        position: static !important;
+        height: 620px !important;
+      }
     }
 
     .panel {
-      background: var(--surface);
+      background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
     }
 
-    .navigation {
-      position: sticky;
-      top: 80px;
-      height: calc(100vh - 96px);
-      padding: 12px;
-      overflow: auto;
+    /* Banner & Dummy Loader */
+    .demo-banner {
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      margin-bottom: 14px;
+      font-size: 0.85rem;
     }
 
-    .navigation-title {
-      padding: 8px 10px 12px;
-      color: var(--secondary);
-      font-size: 13px;
+    .demo-banner-title {
       font-weight: 700;
+      color: var(--warn-text);
+      margin-bottom: 6px;
     }
 
-    .navigation-button {
-      width: 100%;
-      min-height: 44px;
-      padding: 9px 10px;
+    .demo-btn-group {
       display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
       align-items: center;
-      gap: 9px;
-      color: var(--secondary);
-      background: transparent;
-      border: 0;
-      border-radius: 8px;
-      cursor: pointer;
-      text-align: left;
     }
 
-    .navigation-button:hover {
-      background: var(--background);
-    }
-
-    .navigation-button.active {
-      color: #155b97;
-      background: var(--blue-soft);
-      font-weight: 700;
-    }
-
-    .navigation-number {
-      width: 25px;
-      height: 25px;
-      display: grid;
-      place-items: center;
-      flex-shrink: 0;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-size: 12px;
-    }
-
-    .workspace {
-      min-height: calc(100vh - 96px);
-      padding: 24px;
-    }
-
-    .section-header {
-      margin-bottom: 22px;
-      padding-bottom: 18px;
+    /* Form Sections */
+    .panel-header {
       display: flex;
       justify-content: space-between;
-      gap: 16px;
-      border-bottom: 1px solid var(--border);
+      align-items: center;
+      margin-bottom: 12px;
     }
 
-    .eyebrow {
-      color: var(--blue);
-      font-size: 13px;
+    .case-mode-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .mode-card {
+      flex: 1;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 9px 14px;
+      cursor: pointer;
+      background: #ffffff;
+      font-weight: 600;
+      font-size: 0.92rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+    }
+
+    .mode-card.active {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .section-box {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 13px 15px;
+      margin-bottom: 13px;
+      background: var(--section-bg);
+    }
+
+    .section-title {
+      margin: 0 0 10px 0;
+      font-size: 0.96rem;
       font-weight: 700;
+      color: var(--primary);
+      border-bottom: 2px solid var(--primary-light);
+      padding-bottom: 4px;
     }
 
-    .section-header h2 {
-      margin: 3px 0 6px;
-      font-size: 25px;
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
     }
 
-    .section-header p {
-      max-width: 650px;
-      margin: 0;
-      color: var(--secondary);
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
     }
 
-    .selection-count {
-      height: max-content;
-      padding: 6px 9px;
-      flex-shrink: 0;
-      color: var(--secondary);
-      background: var(--background);
-      border-radius: 6px;
-      font-size: 13px;
+    @media (max-width: 680px) {
+      .grid-2,
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
     }
 
     .field {
-      margin-bottom: 24px;
+      margin-bottom: 10px;
     }
 
-    .field-title {
+    .field:last-child {
+      margin-bottom: 0;
+    }
+
+    .field-label {
       display: block;
-      margin-bottom: 8px;
-      font-weight: 700;
+      font-size: 0.83rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text);
     }
 
-    .hint {
-      margin: -4px 0 10px;
-      color: var(--secondary);
-      font-size: 13px;
+    input[type="text"],
+    input[type="password"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-family: inherit;
+      background: #ffffff;
+      color: var(--text);
     }
 
-    .choices {
+    input[type="text"]:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(43, 89, 76, 0.12);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 52px;
+    }
+
+    /* Chips */
+    .chip-group {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 6px;
+      margin-top: 3px;
     }
 
-    .choice {
-      min-height: 44px;
-      padding: 9px 12px;
-      color: var(--text);
-      background: var(--surface);
-      border: 1px solid #d9d7d3;
-      border-radius: 8px;
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 4px 9px;
+      font-size: 0.83rem;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.12s ease;
+    }
+
+    .chip:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .chip input {
+      margin: 0;
       cursor: pointer;
     }
 
-    .choice:hover {
-      border-color: #9dc6eb;
-    }
-
-    .choice.selected {
-      color: #155b97;
-      background: var(--blue-soft);
-      border-color: var(--blue);
-      font-weight: 700;
-    }
-
-    .text-input {
-      width: 100%;
-      min-height: 44px;
-      padding: 11px 12px;
-      color: var(--text);
-      background: var(--surface);
-      border: 1px solid #d7d5d2;
-      border-radius: 8px;
-    }
-
-    textarea.text-input {
-      min-height: 90px;
-      resize: vertical;
-    }
-
-    .section-controls {
-      padding-top: 14px;
+    /* Buttons */
+    .btn-row {
       display: flex;
-      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .btn {
+      padding: 9px 15px;
+      border-radius: var(--radius-md);
+      border: none;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
       align-items: center;
-      border-top: 1px solid var(--border);
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.15s ease, opacity 0.15s ease;
     }
 
-    .step {
-      color: var(--secondary);
-      font-size: 13px;
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
-    .preview {
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      flex: 1.3;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+
+    .btn-fast {
+      background: var(--accent);
+      color: #ffffff;
+      flex: 1;
+    }
+
+    .btn-fast:hover:not(:disabled) {
+      background: var(--accent-hover);
+    }
+
+    .btn-outline {
+      background: #ffffff;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 5px 10px;
+      font-size: 0.82rem;
+    }
+
+    .btn-outline:hover:not(:disabled) {
+      background: #eef1ef;
+      border-color: var(--primary);
+    }
+
+    /* Right Output Panel */
+    .sticky-panel {
       position: sticky;
-      top: 80px;
-      height: calc(100vh - 96px);
+      top: 16px;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+      height: calc(100vh - 36px);
     }
 
-    .preview-header {
-      padding: 18px;
-      display: flex;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .preview-header h2 {
-      margin: 0;
-      font-size: 17px;
-    }
-
-    .status {
-      padding: 5px 8px;
-      color: var(--green);
-      background: var(--green-soft);
-      border-radius: 999px;
-      font-size: 12px;
-    }
-
-    .output {
-      padding: 20px;
+    #reportOutput {
       flex: 1;
-      overflow: auto;
-    }
-
-    .empty-output {
-      height: 100%;
-      display: grid;
-      place-items: center;
-      color: var(--secondary);
-      text-align: center;
-    }
-
-    .report-section {
-      margin-bottom: 24px;
-    }
-
-    .report-section h3 {
-      margin: 0 0 8px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid var(--border);
-      font-size: 15px;
-    }
-
-    .report-section p {
-      margin: 0;
-    }
-
-    .preview-footer {
-      padding: 12px 16px;
-      border-top: 1px solid var(--border);
-    }
-
-    .notice {
-      margin-top: 5px;
-      color: var(--secondary);
-      font-size: 12px;
-    }
-
-    .tip {
-      margin-top: 16px;
+      width: 100%;
+      font-family: "Microsoft JhengHei", "PingFang HK", sans-serif;
+      font-size: 0.94rem;
+      line-height: 1.65;
       padding: 14px;
-      background: #f7fbff;
-      border: 1px solid #cfe3f5;
-      border-radius: 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: #fcfcfb;
+      white-space: pre-wrap;
+      resize: none;
     }
 
-    @media (max-width: 1050px) {
-      .layout {
-        grid-template-columns: 190px minmax(0, 1fr);
-      }
-
-      .preview {
-        display: none;
-      }
+    .status-badge {
+      font-size: 0.82rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: var(--primary-light);
+      color: var(--primary);
+      font-weight: 600;
     }
 
-    @media (max-width: 720px) {
-      .topbar {
-        padding: 10px 16px;
-      }
-
-      .brand p,
-      #clearButton {
-        display: none;
-      }
-
-      .layout {
-        display: block;
-        padding: 10px;
-      }
-
-      .navigation {
-        position: static;
-        height: auto;
-        margin-bottom: 10px;
-        display: flex;
-        gap: 6px;
-      }
-
-      .navigation-title,
-      .navigation-label {
-        display: none;
-      }
-
-      .navigation-button {
-        width: auto;
-      }
-
-      .workspace {
-        min-height: auto;
-        padding: 18px;
-      }
-
-      .section-header {
-        display: block;
-      }
-
-      .selection-count {
-        display: inline-block;
-        margin-top: 10px;
-      }
+    .hidden {
+      display: none !important;
     }
   </style>
 </head>
-
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo">錄</div>
 
-      <div>
-        <h1>Intake Report</h1>
-        <p>Intake report drafting assistant</p>
+<header>
+  <h1>📋 長者地區中心 (EDECC) 個案接案報告助手</h1>
+  <div class="api-bar">
+    <label for="apiUrl">AnythingLLM 網址:</label>
+    <input type="text" id="apiUrl" value="http://localhost:3001" style="width: 155px;" />
+    <label for="apiKey">API Key:</label>
+    <input type="password" id="apiKey" placeholder="本機 API Key (選填)" style="width: 145px;" />
+    <button type="button" id="btnLoadWorkspaces">1. 讀取工作區</button>
+    <select id="workspaceSlug" aria-label="選擇 AnythingLLM 工作區" style="min-width: 145px;">
+      <option value="">-- 請先讀取工作區 --</option>
+    </select>
+    <span id="connStatus">未連線</span>
+  </div>
+</header>
+
+<main class="main-container">
+  <!-- 左側：結構化輸入表單 -->
+  <section class="panel">
+    <div class="demo-banner">
+      <div class="demo-banner-title">
+        ⚠️ 測試與演示環境提示：請僅輸入虛擬測試資料（Dummy Data），切勿輸入真實個人私隱資料。
+      </div>
+      <div class="demo-btn-group">
+        <span>一鍵載入標準測試個案：</span>
+        <button type="button" class="btn btn-outline" data-dummy="1">
+          🧪 個案一（同住中風＋睡少於5小時＋缺失留白）
+        </button>
+        <button type="button" class="btn btn-outline" data-dummy="2">
+          🧪 個案二（認知障礙＋嗜睡＋外傭分擔）
+        </button>
+        <button type="button" class="btn btn-outline" data-dummy="3">
+          🧪 個案三（獨居長者＋看更支援）
+        </button>
       </div>
     </div>
 
-    <div class="actions">
-      <button class="button" id="clearButton">清除全部</button>
-      <button class="button primary" id="generateButton">產生報告</button>
+    <div class="panel-header">
+      <strong>步驟一：選擇個案類別與填寫評估項目</strong>
+      <button type="button" class="btn btn-outline" id="btnResetForm">🧹 清空表單</button>
     </div>
-  </header>
 
-  <div class="layout">
-    <nav class="panel navigation" id="navigation"></nav>
+    <!-- 個案模式切換 -->
+    <div class="case-mode-bar">
+      <label class="mode-card active" id="modeFamilyCard">
+        <input type="radio" name="caseMode" value="family" checked />
+        👨‍👩‍👧 同住／有照顧者個案 (/intake)
+      </label>
+      <label class="mode-card" id="modeSoloCard">
+        <input type="radio" name="caseMode" value="solo" />
+        🏠 獨居長者個案 (/intake-solo)
+      </label>
+    </div>
 
-    <main class="panel workspace">
-      <div class="section-header">
-        <div>
-          <div class="eyebrow" id="eyebrow"></div>
-          <h2 id="sectionTitle"></h2>
-          <p id="sectionDescription"></p>
+    <!-- 1. 背景與求助目標 -->
+    <div class="section-box">
+      <div class="section-title">1. 背景資料與申請服務目標</div>
+      <div class="grid-3">
+        <div class="field">
+          <label class="field-label" for="occupation">退休前職業 (自動刪去「前」字)</label>
+          <input type="text" id="occupation" placeholder="例：老師 / 侍應 / 家庭主婦" />
         </div>
+        <div class="field">
+          <label class="field-label" for="livingArrangement">婚姻及同住安排</label>
+          <input type="text" id="livingArrangement" placeholder="例：案主與太太兩老同住" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="targetService">申請目標服務</label>
+          <select id="targetService">
+            <option value="輪候長期護理服務">輪候長期護理服務</option>
+            <option value="CCSV服務">CCSV服務</option>
+            <option value="輪候長期護理服務及CCSV服務">輪候長期護理服務及CCSV服務</option>
+            <option value="RCS及CCS服務">RCS及CCS服務</option>
+          </select>
+        </div>
+      </div>
+    </div>
 
-        <div class="selection-count" id="selectionCount">
-          已選 0 項
+    <!-- 2. 健康、行動與自理 -->
+    <div class="section-box">
+      <div class="section-title">2. 健康狀況（慢病、病歷、行動、如廁、餐膳）</div>
+      <div class="field">
+        <span class="field-label">慢性疾病 (可多選及補充)</span>
+        <div class="chip-group">
+          <label class="chip"><input type="checkbox" class="disease-cb" value="高血壓" /> 高血壓</label>
+          <label class="chip"><input type="checkbox" class="disease-cb" value="糖尿病" /> 糖尿病</label>
+          <label class="chip"><input type="checkbox" class="disease-cb" value="膽固醇過高" /> 膽固醇過高</label>
+          <label class="chip"><input type="checkbox" id="cbThreeHighs" /> ⚡ 一鍵勾選「三高」</label>
+          <label class="chip"><input type="checkbox" class="disease-cb" value="骨質疏鬆" /> 骨質疏鬆</label>
+          <label class="chip"><input type="checkbox" class="disease-cb" value="哮喘" /> 哮喘</label>
+          <label class="chip"><input type="checkbox" class="disease-cb" value="心臟病" /> 心臟病</label>
+          <label class="chip"><input type="checkbox" class="disease-cb" value="白內障" /> 白內障</label>
+        </div>
+        <input type="text" id="diseaseExtra" placeholder="其他慢病補充（例：痛風、柏金遜症，以頓號分隔）" style="margin-top: 6px;" />
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label class="field-label" for="hospital">主要覆診醫院</label>
+          <select id="hospital">
+            <option value="東區醫院">東區醫院</option>
+            <option value="律敦治醫院">律敦治醫院</option>
+            <option value="東區醫院及律敦治醫院">東區醫院及律敦治醫院</option>
+            <option value="瑪麗醫院">瑪麗醫院</option>
+            <option value="普通科門診">普通科門診</option>
+            <option value="[待補充：覆診醫院]">未提及 (標示待補充)</option>
+            <option value="custom">其他醫院 (手動輸入)</option>
+          </select>
+          <input type="text" id="hospitalCustom" class="hidden" placeholder="請輸入覆診醫院或診所全名" style="margin-top: 6px;" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="majorMedicalEvent">引發事件／中風／跌倒／出入院經過</label>
+          <input type="text" id="majorMedicalEvent" placeholder="例：2025年9月中風致左邊身無力" />
         </div>
       </div>
 
-      <div id="formArea"></div>
-
-      <div class="section-controls">
-        <button class="button" id="previousButton">← 上一項</button>
-        <span class="step" id="stepText"></span>
-        <button class="button" id="nextButton">下一項 →</button>
+      <div class="grid-2">
+        <div class="field">
+          <label class="field-label" for="indoorMobility">家中（室內）行動方式</label>
+          <select id="indoorMobility">
+            <option value="可用拐杖">可用拐杖</option>
+            <option value="可用拐杖及一人扶行">可用拐杖及一人扶行</option>
+            <option value="可用助行架">可用助行架</option>
+            <option value="可自如走動">可自如走動</option>
+            <option value="需一人扶行">需一人扶行</option>
+            <option value="需坐輪椅">需坐輪椅</option>
+            <option value="[待補充：家中行動能力]">未提及 (標示待補充)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="outdoorMobility">外出行動方式</label>
+          <select id="outdoorMobility">
+            <option value="坐輪椅">坐輪椅</option>
+            <option value="使用拐杖">使用拐杖</option>
+            <option value="使用助行架">使用助行架</option>
+            <option value="需一人扶行">需一人扶行</option>
+            <option value="自如走動">自如走動</option>
+            <option value="[待補充：外出行動能力]">未提及 (標示待補充)</option>
+          </select>
+        </div>
       </div>
-    </main>
 
-    <aside class="panel preview">
-      <div class="preview-header">
-        <h2>正式報告預覽</h2>
-        <span class="status">草稿</span>
+      <div class="grid-3">
+        <div class="field">
+          <label class="field-label" for="adlStatus">ADL 及 IADL 自理情況</label>
+          <input type="text" id="adlStatus" value="ADL 案主可大致自理，IADL則由太太協助" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="toiletStatus">如廁及尿片使用</label>
+          <select id="toiletStatus">
+            <option value="沒有失禁，無需使用尿片">沒有失禁，無需使用尿片</option>
+            <option value="暫時未見有問題，僅於晚上穿戴尿片">暫時未見有問題，僅於晚上穿戴尿片</option>
+            <option value="僅於外出或晚上穿戴尿片">僅於外出或晚上穿戴尿片</option>
+            <option value="有失禁情況，日常需穿著尿片">有失禁情況，日常需穿著尿片</option>
+            <option value="[待補充：如廁及尿片情況]">未提及 (標示待補充)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="dietType">餐膳種類</label>
+          <select id="dietType">
+            <option value="[待補充：餐膳種類]">未提及 (標示待補充)</option>
+            <option value="正常餐">正常餐</option>
+            <option value="碎餐">碎餐</option>
+            <option value="淋餐">淋餐</option>
+            <option value="免治餐">免治餐</option>
+            <option value="糊餐">糊餐</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. 情緒、認知與睡眠 -->
+    <div class="section-box">
+      <div class="section-title">3. 情緒、認知與睡眠邏輯</div>
+      <div class="grid-2">
+        <div class="field">
+          <label class="field-label" for="cognitiveStatus">認知與聽力溝通情況</label>
+          <input type="text" id="cognitiveStatus" value="案主認知能力正常，可與工作員正常對答" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="emotionStatus">情緒與精神科紀錄</label>
+          <input type="text" id="emotionStatus" value="案主情緒穩定，沒有精神科覆診記錄" />
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label class="field-label" for="sleepType">睡眠狀態類別 (自動對應日間精神描述)</label>
+          <select id="sleepType">
+            <option value="good">1. 睡眠充足／睡好（睡醒後感覺有精神）</option>
+            <option value="poor">2. 睡眠不足(少於5小時)／夜尿難復睡（睡醒後仍感疲倦，日間精神欠佳）</option>
+            <option value="hypersomnia">3. 嗜睡情況（即使休息時間長，睡醒後及日間仍感昏昏欲睡、精神疲倦）</option>
+            <option value="missing">4. 未提及 (標示待補充)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="sleepDetail">睡眠時段／時數／夜尿補充</label>
+          <input type="text" id="sleepDetail" placeholder="例：11pm - 6am 或 12am - 4am睡覺（僅睡約4小時），夜尿後難復睡" />
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. 親人關係及照顧者壓力 -->
+    <div class="section-box">
+      <div class="section-title">4. 親人關係與護老者照顧狀況</div>
+      <div class="grid-3" id="familyCarerRow">
+        <div class="field">
+          <label class="field-label" for="mainCarer">主要照顧者稱謂</label>
+          <select id="mainCarer">
+            <option value="太太">太太</option>
+            <option value="案夫">案夫</option>
+            <option value="大女">大女</option>
+            <option value="二女">二女</option>
+            <option value="三女">三女</option>
+            <option value="案女">案女</option>
+            <option value="大子">大子</option>
+            <option value="二子">二子</option>
+            <option value="細仔">細仔</option>
+            <option value="案子">案子</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="carerRelation">與主要照顧者關係</label>
+          <select id="carerRelation">
+            <option value="良好">良好</option>
+            <option value="緊密而良好">緊密而良好</option>
+            <option value="一般">一般</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="carerStress">照顧者壓力程度</label>
+          <select id="carerStress">
+            <option value="high">感到吃力，照顧壓力較大</option>
+            <option value="low_maid">有傭人分擔照顧，照顧壓力不大</option>
+            <option value="low_coop">案主尚算配合，照顧壓力不大</option>
+          </select>
+        </div>
       </div>
 
-      <div class="output" id="output">
-        <div class="empty-output">
-          <div>
-            <div style="font-size: 30px">✦</div>
-            <strong>尚未產生內容</strong><br>
-            完成選擇後按「產生報告」
+      <div class="field">
+        <label class="field-label" for="otherFamilyNotes">其他親人或同住傭人關係（列入「與護老者或其他親人的關係」欄，可多行）</label>
+        <textarea id="otherFamilyNotes" placeholder="例：大子：居於外國，少聯絡，關係疏離。&#10;傭人：同住，到職1年協助起居及家務，關係良好。"></textarea>
+      </div>
+
+      <div class="field hidden" id="soloSupportField">
+        <label class="field-label" for="informalSupportNotes">獨居非正式支援描述（列入「護老者的能力及情緒狀況」欄，如看更、鄰居探望）</label>
+        <input type="text" id="informalSupportNotes" placeholder="例：樓下看更相識多年，每週探望及間中幫忙買飯" />
+      </div>
+    </div>
+
+    <!-- 5. 經濟、浴室安全及支援網絡 -->
+    <div class="section-box">
+      <div class="section-title">5. 經濟狀況、浴室設施與支援網絡</div>
+      <div class="grid-2">
+        <div class="field">
+          <label class="field-label" for="allowance">正領取之津貼 (只放入經濟狀況)</label>
+          <select id="allowance">
+            <option value="OALA">OALA</option>
+            <option value="OAA">OAA</option>
+            <option value="HDA">HDA</option>
+            <option value="OALA及HDA">OALA及HDA</option>
+            <option value="長糧">長糧</option>
+            <option value="[待補充：津貼種類]">未提及 (標示待補充)</option>
+          </select>
+        </div>
+        <div class="field">
+          <span class="field-label">浴室安全設施 (未勾選則自動輸出[待補充])</span>
+          <div class="chip-group">
+            <label class="chip"><input type="checkbox" class="bath-cb" value="扶手" /> 扶手</label>
+            <label class="chip"><input type="checkbox" class="bath-cb" value="防滑墊" /> 防滑墊</label>
+            <label class="chip"><input type="checkbox" class="bath-cb" value="沖涼椅" /> 沖涼椅</label>
           </div>
         </div>
       </div>
 
-      <div class="preview-footer">
-        <button class="button" id="copyButton" style="width: 100%">
-          複製全文
-        </button>
-
-        <div class="notice">
-          使用前請核實個案資料、醫療資料及服務名稱。
+      <div class="field">
+        <span class="field-label">支援網絡（勾選項目將逐行放入「支援網絡」欄）</span>
+        <div class="chip-group">
+          <label class="chip"><input type="checkbox" class="net-cb" value="家人" checked id="netFamily" /> 家人</label>
+          <label class="chip"><input type="checkbox" class="net-cb" value="EDECC" checked /> EDECC</label>
+          <label class="chip"><input type="checkbox" class="net-cb" value="傭人" id="netMaid" /> 傭人</label>
+          <label class="chip"><input type="checkbox" class="net-cb" value="待安排CCSV服務" /> 待安排CCSV服務</label>
+          <label class="chip"><input type="checkbox" class="net-cb" value="循道IDSP跟進中" /> 循道IDSP跟進中</label>
+          <label class="chip"><input type="checkbox" class="net-cb" value="律敦治ICM" /> 律敦治ICM</label>
+          <label class="chip"><input type="checkbox" class="net-cb" value="看更" /> 看更</label>
         </div>
       </div>
-    </aside>
-  </div>
 
-  <script>
-    /*
-     * 每一個類別的格式：
-     *
-     * {
-     *   title: 類別名稱,
-     *   description: 類別說明,
-     *   groups: [
-     *     {
-     *       label: 選項組名稱,
-     *       key: JavaScript內部名稱,
-     *       type: "single"、"multiple" 或 "text",
-     *       options: 按鈕選項
-     *     }
-     *   ]
-     * }
-     */
+      <div class="field">
+        <label class="field-label" for="extraNotes">額外補充速記 (供 AnythingLLM 整合潤飾)</label>
+        <textarea id="extraNotes" placeholder="如有其他特殊背景、多次出入院時間線或BPSD行為，可在此補充..."></textarea>
+      </div>
+    </div>
 
-    const sections = [
-      {
-        title: "求助問題",
-        description: "概括引發求助的情況、照顧憂慮及服務需要。",
-        groups: [
-          {
-            label: "主要引發事件",
-            key: "trigger",
-            type: "single",
-            options: [
-              "身體狀況逐漸轉差",
-              "跌倒後自理能力下降",
-              "中風後身體機能轉差",
-              "住院後行動及自理能力退化",
-              "認知能力出現退化",
-              "長期病患影響日常生活",
-              "主要照顧者年事漸高",
-              "現有短期服務即將結束"
-            ]
-          },
-          {
-            label: "主要憂慮",
-            key: "concern",
-            type: "single",
-            options: [
-              "案主日後無法自理",
-              "家人長遠無法繼續照顧案主",
-              "未能為案主提供適切照顧",
-              "案主情況持續退化",
-              "獨居安全風險增加"
-            ]
-          },
-          {
-            label: "服務需要",
-            key: "serviceNeed",
-            type: "multiple",
-            options: [
-              "申請輪候長期護理服務",
-              "申請上門照顧服務",
-              "申請上門復康運動服務",
-              "申請社區照顧服務券",
-              "考慮院舍照顧安排",
-              "銜接現有服務"
-            ]
-          }
-        ]
-      },
+    <div class="btn-row">
+      <button type="button" class="btn btn-fast" id="btnInstantDraft">
+        ⚡ 1. 即時組合標準初稿 (0秒免等待)
+      </button>
+      <button type="button" class="btn btn-primary" id="btnAiGenerate">
+        🤖 2. 送交 AnythingLLM (Qwen3-4B) 潤飾生成
+      </button>
+    </div>
+  </section>
 
-      {
-        title: "背景資料",
-        description: "記錄案主的重要人生、家庭及居住轉變。",
-        groups: [
-          {
-            label: "過往角色",
-            key: "pastRole",
-            type: "single",
-            options: [
-              "退休前為家庭主婦",
-              "退休前任職文職工作",
-              "退休前任職體力勞動工作",
-              "退休前為專業人士或管理人員",
-              "過往自理能力良好"
-            ]
-          },
-          {
-            label: "重要轉變",
-            key: "transition",
-            type: "multiple",
-            options: [
-              "配偶已離世，案主及家人已逐步適應",
-              "由獨居轉為與家人同住",
-              "為方便家人照顧而搬至現居",
-              "子女長居海外，但與案主保持聯絡",
-              "與部分家人關係較為疏離",
-              "近期聘請傭人協助照顧"
-            ]
-          },
-          {
-            label: "補充資料",
-            key: "backgroundNote",
-            type: "text",
-            placeholder: "例如：年份、職業、移居或家庭重要事件"
-          }
-        ]
-      },
+  <!-- 右側：報告輸出與複製 -->
+  <section class="panel sticky-panel">
+    <div class="panel-header">
+      <strong>步驟二：檢視及複製正式接案報告</strong>
+      <span class="status-badge" id="genStatus">就緒</span>
+    </div>
+    <textarea id="reportOutput" aria-label="接案報告輸出結果" placeholder="點擊左側「⚡ 1. 即時組合標準初稿」或「🤖 2. 送交 AnythingLLM 潤飾生成」，報告將顯示於此..."></textarea>
+    <div class="btn-row">
+      <button type="button" class="btn btn-primary" id="btnCopyReport">📋 一鍵複製報告 (貼上至 Word)</button>
+    </div>
+  </section>
+</main>
 
-      {
-        title: "健康及自理能力",
-        description: "描述病歷、覆診、行動、吞嚥、失禁、ADL及IADL。",
-        groups: [
-          {
-            label: "長期病患",
-            key: "conditions",
-            type: "multiple",
-            options: [
-              "高血壓",
-              "糖尿病",
-              "膽固醇過高",
-              "心臟病",
-              "中風後遺症",
-              "柏金遜症",
-              "癌症",
-              "腎功能衰退或腎衰竭",
-              "認知障礙症",
-              "關節退化或痛症",
-              "視力退化",
-              "聽力退化"
-            ]
-          },
-          {
-            label: "病情及覆診",
-            key: "medicalFollowUp",
-            type: "multiple",
-            options: [
-              "病情穩定，持續服藥控制",
-              "由醫院專科持續跟進",
-              "由普通科門診覆診取藥",
-              "近期曾入院接受治療",
-              "正接受復康治療",
-              "暫未有醫療跟進"
-            ]
-          },
-          {
-            label: "行動能力",
-            key: "mobility",
-            type: "single",
-            options: [
-              "行動能力良好，可自行外出",
-              "行動能力尚可，外出需持枴杖",
-              "家中需使用助行架，外出則坐輪椅",
-              "家中需一人扶行，外出則坐輪椅",
-              "行動能力弱，主要使用輪椅",
-              "大部分時間臥床休息"
-            ]
-          },
-          {
-            label: "ADL／IADL",
-            key: "dailyLiving",
-            type: "single",
-            options: [
-              "ADL及IADL均可自理",
-              "ADL可自理，部分IADL需協助",
-              "大部分ADL可自理，IADL需他人協助",
-              "部分ADL需協助，IADL由他人代為處理",
-              "大部分ADL需協助，IADL無法自理",
-              "ADL及IADL均需他人協助"
-            ]
-          },
-          {
-            label: "吞嚥及飲食",
-            key: "swallowing",
-            type: "single",
-            options: [
-              "吞嚥能力良好，可正常進食",
-              "吞嚥能力較弱，需食淋餐或碎餐",
-              "吞嚥能力弱，需食糊餐及使用凝固粉",
-              "食慾較差，需留意營養攝取"
-            ]
-          },
-          {
-            label: "如廁情況",
-            key: "continence",
-            type: "single",
-            options: [
-              "沒有失禁情況，可自行如廁",
-              "間中有尿滲情況",
-              "有小便失禁，需穿著尿片",
-              "有大小便失禁，需全天穿著尿片"
-            ]
-          },
-          {
-            label: "醫療補充",
-            key: "healthNote",
-            type: "text",
-            placeholder: "例如：確診年份、醫院、專科、覆診期或手術資料"
-          }
-        ]
-      },
+<script>
+(() => {
+  'use strict';
 
-      {
-        title: "情緒及認知狀況",
-        description: "使用客觀字眼，區分觀察、家人陳述及評估結果。",
-        groups: [
-          {
-            label: "情緒表現",
-            key: "mood",
-            type: "single",
-            options: [
-              "情緒穩定，未見明顯負面情緒",
-              "情緒大致平穩，間中感到低落",
-              "因身體退化而感到焦慮及擔心",
-              "對現況感到無奈",
-              "日間精神較差，較多時間休息",
-              "偶有情緒波動或發脾氣"
-            ]
-          },
-          {
-            label: "精神健康及風險",
-            key: "mentalHealth",
-            type: "multiple",
-            options: [
-              "沒有精神科覆診記錄",
-              "正由精神科跟進",
-              "未見暴力傾向或虐待情況",
-              "沒有輕生念頭",
-              "需持續觀察情緒狀況"
-            ]
-          },
-          {
-            label: "認知及溝通",
-            key: "cognition",
-            type: "single",
-            options: [
-              "認知及表達能力正常",
-              "短期記憶力退化",
-              "認知能力較弱，需以簡單問題溝通",
-              "偶有混亂或重複提問情況",
-              "已確診認知障礙症",
-              "主要以手語或非語言方式溝通"
-            ]
-          },
-          {
-            label: "評估補充",
-            key: "emotionNote",
-            type: "text",
-            placeholder: "例如：MoCA／GDS分數、觀察所得或家人陳述"
-          }
-        ]
-      },
+  const STORAGE_KEYS = {
+    URL: 'edecc_allm_url',
+    KEY: 'edecc_allm_key',
+    SLUG: 'edecc_allm_slug'
+  };
 
-      {
-        title: "家庭及親屬關係",
-        description: "交代同住安排、關係質素、聯絡頻率及支援。",
-        groups: [
-          {
-            label: "同住安排",
-            key: "livingArrangement",
-            type: "single",
-            options: [
-              "與配偶同住",
-              "與子女及其家人同住",
-              "與傭人同住",
-              "與傭人及家人同住",
-              "與其他親屬同住",
-              "獨居"
-            ]
-          },
-          {
-            label: "關係及聯絡",
-            key: "familyRelationship",
-            type: "multiple",
-            options: [
-              "與家人關係良好",
-              "家人間互相支持",
-              "子女定期探望及聯絡",
-              "子女主要以電話或視像聯絡",
-              "節慶時會相聚",
-              "與部分家人關係疏離",
-              "家庭成員會共同商議照顧安排"
-            ]
-          },
-          {
-            label: "補充資料",
-            key: "familyNote",
-            type: "text",
-            placeholder: "例如：親屬身份、居住地、探視頻率或分工"
-          }
-        ]
-      },
+  const THREE_HIGHS_LIST = ['高血壓', '糖尿病', '膽固醇過高'];
 
-      {
-        title: "護老者狀況",
-        description: "描述主要照顧者、照顧內容、能力、分工及壓力。",
-        groups: [
-          {
-            label: "主要照顧者",
-            key: "mainCarer",
-            type: "single",
-            options: [
-              "案配偶為主要照顧者",
-              "案子女為主要照顧者",
-              "其他親屬為主要照顧者",
-              "傭人為主要照顧者",
-              "家人與傭人共同照顧",
-              "現時未有正式護老者"
-            ]
-          },
-          {
-            label: "照顧工作",
-            key: "carerTasks",
-            type: "multiple",
-            options: [
-              "協助處理日常家務及煮食",
-              "協助案主處理ADL",
-              "代為處理IADL",
-              "協調醫療及服務安排",
-              "陪同覆診",
-              "提供貼身護理",
-              "管理藥物及財務"
-            ]
-          },
-          {
-            label: "照顧能力及壓力",
-            key: "carerPressure",
-            type: "single",
-            options: [
-              "照顧能力良好，暫未見明顯壓力",
-              "有家人分工，照顧壓力尚可",
-              "有傭人分擔，照顧壓力不大",
-              "照顧者同為長者，擔心未能長期照顧",
-              "照顧者需兼顧工作，照顧時間有限",
-              "照顧者表示身心疲累，照顧壓力較大",
-              "缺乏替手及私人休息時間"
-            ]
-          },
-          {
-            label: "補充資料",
-            key: "carerNote",
-            type: "text",
-            placeholder: "例如：照顧者健康、工作、分工或服務需要"
-          }
-        ]
-      },
+  const DEFAULT_STATE = {
+    caseMode: 'family',
+    occupation: '',
+    livingArrangement: '',
+    targetService: '輪候長期護理服務',
+    diseases: [],
+    diseaseExtra: '',
+    hospital: '東區醫院',
+    hospitalCustom: '',
+    majorMedicalEvent: '',
+    indoorMobility: '可用拐杖',
+    outdoorMobility: '坐輪椅',
+    adlStatus: 'ADL 案主可大致自理，IADL則由太太協助',
+    toiletStatus: '沒有失禁，無需使用尿片',
+    dietType: '[待補充：餐膳種類]',
+    cognitiveStatus: '案主認知能力正常，可與工作員正常對答',
+    emotionStatus: '案主情緒穩定，沒有精神科覆診記錄',
+    sleepType: 'good',
+    sleepDetail: '',
+    mainCarer: '太太',
+    carerRelation: '良好',
+    carerStress: 'high',
+    otherFamilyNotes: '',
+    informalSupportNotes: '',
+    allowance: 'OALA',
+    bathFacilities: [],
+    supportNetwork: ['家人', 'EDECC'],
+    extraNotes: ''
+  };
 
-      {
-        title: "經濟狀況",
-        description: "記錄福利、積蓄、家人供養及實際經濟困難。",
-        groups: [
-          {
-            label: "津貼及收入",
-            key: "benefits",
-            type: "multiple",
-            options: [
-              "正領取OALA",
-              "正領取OAA",
-              "正領取CSSA",
-              "正領取普通傷殘津貼（NDA）",
-              "正領取高額傷殘津貼（HDA）",
-              "有退休金或長糧",
-              "家人有供養案主",
-              "個人另有積蓄"
-            ]
-          },
-          {
-            label: "整體狀況",
-            key: "financialSituation",
-            type: "single",
-            options: [
-              "暫未見有經濟困難",
-              "暫時尚可應付日常支出",
-              "擔心日後照顧開支",
-              "正申請或覆核經濟援助",
-              "經濟資料有待進一步了解"
-            ]
-          },
-          {
-            label: "補充資料",
-            key: "financeNote",
-            type: "text",
-            placeholder: "例如：津貼金額、資產安排或跟進部門"
-          }
-        ]
-      },
+  const DUMMY_CASES = {
+    1: {
+      caseMode: 'family',
+      occupation: '前老師',
+      livingArrangement: '案主與太太兩老同住',
+      targetService: 'CCSV服務',
+      diseases: ['高血壓', '糖尿病', '膽固醇過高'],
+      diseaseExtra: '',
+      hospital: '東區醫院',
+      hospitalCustom: '',
+      majorMedicalEvent: '2025年9月中風致左邊身無力',
+      indoorMobility: '可用拐杖及一人扶行',
+      outdoorMobility: '坐輪椅',
+      adlStatus: 'ADL 案主可大致自理，IADL則由太太協助',
+      toiletStatus: '暫時未見有問題，僅於晚上穿戴尿片',
+      dietType: '[待補充：餐膳種類]',
+      cognitiveStatus: '案主認知能力正常，可與工作員正常對答',
+      emotionStatus: '案主情緒穩定，沒有精神科覆診記錄',
+      sleepType: 'poor',
+      sleepDetail: '12am - 4am睡覺（僅睡約4小時），夜尿後難復睡',
+      mainCarer: '太太',
+      carerRelation: '良好',
+      carerStress: 'high',
+      otherFamilyNotes: '大仔：居於外國，少聯絡，關係疏離',
+      informalSupportNotes: '',
+      allowance: 'OALA',
+      bathFacilities: [],
+      supportNetwork: ['家人', 'EDECC', '待安排CCSV服務'],
+      extraNotes: ''
+    },
+    2: {
+      caseMode: 'family',
+      occupation: '家庭主婦',
+      livingArrangement: '丈夫於5年前過身，現與二女及傭人同住',
+      targetService: '輪候長期護理服務',
+      diseases: ['高血壓', '膽固醇過高'],
+      diseaseExtra: '',
+      hospital: '律敦治醫院',
+      hospitalCustom: '',
+      majorMedicalEvent: '2026年3月家中跌倒入院復康後雙腳無力',
+      indoorMobility: '可用助行架',
+      outdoorMobility: '坐輪椅',
+      adlStatus: 'ADL及IADL均需二女及傭人協助',
+      toiletStatus: '有失禁情況，日常需穿著尿片',
+      dietType: '碎餐',
+      cognitiveStatus: '案主於2024年確診認知障礙症，記憶力及理解力弱',
+      emotionStatus: '案主情緒穩定，沒有精神科覆診記錄',
+      sleepType: 'hypersomnia',
+      sleepDetail: '',
+      mainCarer: '二女',
+      carerRelation: '緊密而良好',
+      carerStress: 'low_maid',
+      otherFamilyNotes: '傭人：同住，到職1年協助起居及家務，關係良好',
+      informalSupportNotes: '',
+      allowance: 'OAA',
+      bathFacilities: ['扶手', '防滑墊', '沖涼椅'],
+      supportNetwork: ['家人', 'EDECC', '傭人'],
+      extraNotes: ''
+    },
+    3: {
+      caseMode: 'solo',
+      occupation: '前侍應',
+      livingArrangement: '案主丈夫於多年前過身，自此案主獨居。案主有一子移居美國，現時失聯',
+      targetService: '輪候長期護理服務',
+      diseases: ['骨質疏鬆', '哮喘'],
+      diseaseExtra: '',
+      hospital: '律敦治醫院',
+      hospitalCustom: '',
+      majorMedicalEvent: '2026年5月因氣促及脊椎骨折入院，8月出院',
+      indoorMobility: '可自如走動',
+      outdoorMobility: '使用拐杖',
+      adlStatus: '案主ADL及部分IADL可自理',
+      toiletStatus: '沒有失禁，無需使用尿片',
+      dietType: '正常餐',
+      cognitiveStatus: '案主認知能力正常，惟聽力退化需大聲對答',
+      emotionStatus: '案主情緒穩定，沒有精神科覆診記錄',
+      sleepType: 'good',
+      sleepDetail: '11pm - 6am',
+      mainCarer: '太太',
+      carerRelation: '良好',
+      carerStress: 'high',
+      otherFamilyNotes: '兒子：居於美國，現時失聯，關係疏離',
+      informalSupportNotes: '樓下看更相識多年，每週探望及間中幫忙買飯',
+      allowance: 'OALA',
+      bathFacilities: ['防滑墊'],
+      supportNetwork: ['EDECC', '循道IDSP跟進中', '看更'],
+      extraNotes: ''
+    }
+  };
 
-      {
-        title: "居住狀況及安全",
-        description: "描述通道、浴室設備、輔具、雜物及潛在風險。",
-        groups: [
-          {
-            label: "整體環境",
-            key: "homeCondition",
-            type: "single",
-            options: [
-              "家居環境良好，雜物已妥善安放",
-              "家居尚算整潔，出入通道暢通",
-              "家居雜物較多，但仍有通道可供出入",
-              "雜物堆積影響通道及增加跌倒風險",
-              "家居環境有待進一步評估"
-            ]
-          },
-          {
-            label: "浴室及設備",
-            key: "homeEquipment",
-            type: "multiple",
-            options: [
-              "浴室備有防滑墊",
-              "浴室備有扶手",
-              "備有沖涼椅或膠椅",
-              "家中備有助行架",
-              "床邊設有扶手",
-              "備有電動床",
-              "有足夠空間讓輪椅或助行架通過"
-            ]
-          },
-          {
-            label: "建議及風險",
-            key: "homeRecommendations",
-            type: "multiple",
-            options: [
-              "建議添置防滑墊",
-              "建議添置沖涼椅",
-              "建議安裝扶手",
-              "建議安裝防撞角",
-              "建議申請平安鐘",
-              "需留意防火安全",
-              "需持續檢視家居防跌安排"
-            ]
-          },
-          {
-            label: "補充資料",
-            key: "homeNote",
-            type: "text",
-            placeholder: "例如：浴缸／企缸、樓梯、空間限制或特殊風險"
-          }
-        ]
-      },
-
-      {
-        title: "支援網絡",
-        description: "列出非正式支援、中心及其他機構服務。",
-        groups: [
-          {
-            label: "非正式支援",
-            key: "informalSupport",
-            type: "multiple",
-            options: [
-              "家人",
-              "親友或鄰居",
-              "傭人",
-              "教會或宗教團體",
-              "大廈職員或看更",
-              "義工"
-            ]
-          },
-          {
-            label: "正式支援",
-            key: "formalSupport",
-            type: "multiple",
-            options: [
-              "EDECC",
-              "中心會員服務",
-              "IHCS／家居照顧服務",
-              "IDSP／離院支援服務",
-              "CCSV／社區照顧服務券",
-              "日間護理中心服務",
-              "送飯服務",
-              "陪診服務",
-              "上門復康服務",
-              "醫院外展或專科支援"
-            ]
-          },
-          {
-            label: "補充資料",
-            key: "supportNote",
-            type: "text",
-            placeholder: "例如：機構名稱、服務頻率、負責人或服務日期"
-          }
-        ]
-      },
-
-      {
-        title: "跟進計劃",
-        description: "使用行動導向、簡潔一致的句式。",
-        groups: [
-          {
-            label: "計劃項目",
-            key: "followUpPlans",
-            type: "multiple",
-            options: [
-              "申請輪候長期護理服務",
-              "跟進LTC輪候狀況",
-              "跟進CCSV服務安排",
-              "關顧案主身心狀況",
-              "跟進案主醫療或復康進度",
-              "關顧護老者照顧狀況",
-              "檢視護老者照顧壓力",
-              "協助擴闊社區支援網絡",
-              "轉介合適社區資源",
-              "檢視家居安全及防跌意識",
-              "跟進平安鐘申請",
-              "銜接現有服務"
-            ]
-          },
-          {
-            label: "補充計劃",
-            key: "planNote",
-            type: "text",
-            placeholder: "例如：指定轉介、跟進日期或服務名稱"
-          }
-        ]
-      }
+  // DOM 元件快取
+  const el = {};
+  const cacheElements = () => {
+    const ids = [
+      'apiUrl', 'apiKey', 'btnLoadWorkspaces', 'workspaceSlug', 'connStatus',
+      'btnResetForm', 'modeFamilyCard', 'modeSoloCard', 'familyCarerRow', 'soloSupportField',
+      'occupation', 'livingArrangement', 'targetService', 'cbThreeHighs', 'diseaseExtra',
+      'hospital', 'hospitalCustom', 'majorMedicalEvent', 'indoorMobility', 'outdoorMobility',
+      'adlStatus', 'toiletStatus', 'dietType', 'cognitiveStatus', 'emotionStatus',
+      'sleepType', 'sleepDetail', 'mainCarer', 'carerRelation', 'carerStress',
+      'otherFamilyNotes', 'informalSupportNotes', 'allowance', 'netFamily', 'netMaid',
+      'extraNotes', 'btnInstantDraft', 'btnAiGenerate', 'reportOutput', 'genStatus', 'btnCopyReport'
     ];
+    ids.forEach(id => {
+      el[id] = document.getElementById(id);
+    });
+  };
 
-    /*
-     * state負責儲存所有使用者選擇。
-     * 單選及多選項目使用陣列；補充資料使用文字。
-     */
-    const state = {};
+  // 純文字清理與轉換工具函式
+  const normalizeTerms = (raw) => {
+    if (!raw) return '';
+    return String(raw)
+      .trim()
+      .replace(/妻子/g, '太太')
+      .replace(/大仔/g, '大子')
+      .replace(/二仔/g, '二子')
+      .replace(/三仔/g, '三子')
+      .replace(/過世/g, '過身')
+      .replace(/（LTC）/gi, '')
+      .replace(/\(LTC\)/gi, '');
+  };
 
-    sections.forEach(section => {
-      section.groups.forEach(group => {
-        state[group.key] = group.type === "text" ? "" : [];
+  const stripTrailingPunctuation = (str) => {
+    return normalizeTerms(str).replace(/[。；;，,、.]+$/, '');
+  };
+
+  const stripLeadingBullet = (str) => {
+    return normalizeTerms(str).replace(/^[－\-•*]+\s*/, '');
+  };
+
+  const formatMultiLineBullets = (rawText) => {
+    if (!rawText || !rawText.trim()) return '';
+    return rawText
+      .split(/\r?\n/)
+      .map(line => stripTrailingPunctuation(stripLeadingBullet(line)))
+      .filter(Boolean)
+      .map(line => `－ ${line}。`)
+      .join('\n');
+  };
+
+  const formatOccupationSentence = (rawJob) => {
+    const job = stripTrailingPunctuation(rawJob);
+    if (!job) return '案主曾任職[待補充：退休前職業]。';
+    if (job.includes('主婦')) return '案主婚後為家庭主婦。';
+    const stripped = job.replace(/^前/, '').replace(/^任職/, '').replace(/^曾任職/, '');
+    return `案主曾任職${stripped}。`;
+  };
+
+  const getCheckedValues = (selector) => {
+    return Array.from(document.querySelectorAll(`${selector}:checked`)).map(cb => cb.value);
+  };
+
+  const setCheckedValues = (selector, valuesArray) => {
+    const valSet = new Set(valuesArray || []);
+    document.querySelectorAll(selector).forEach(cb => {
+      cb.checked = valSet.has(cb.value);
+    });
+  };
+
+  // 模式切換 (同住 vs 獨居)
+  const updateModeUI = (mode) => {
+    const isSolo = (mode === 'solo');
+    el.modeFamilyCard.classList.toggle('active', !isSolo);
+    el.modeSoloCard.classList.toggle('active', isSolo);
+    el.modeFamilyCard.querySelector('input').checked = !isSolo;
+    el.modeSoloCard.querySelector('input').checked = isSolo;
+
+    el.familyCarerRow.classList.toggle('hidden', isSolo);
+    el.soloSupportField.classList.toggle('hidden', !isSolo);
+  };
+
+  // 狀態套用與讀取
+  const applyState = (state) => {
+    updateModeUI(state.caseMode);
+    el.occupation.value = state.occupation;
+    el.livingArrangement.value = state.livingArrangement;
+    el.targetService.value = state.targetService;
+
+    setCheckedValues('.disease-cb', state.diseases);
+    el.cbThreeHighs.checked = THREE_HIGHS_LIST.every(d => state.diseases.includes(d));
+    el.diseaseExtra.value = state.diseaseExtra;
+
+    el.hospital.value = state.hospital;
+    el.hospitalCustom.value = state.hospitalCustom;
+    el.hospitalCustom.classList.toggle('hidden', state.hospital !== 'custom');
+
+    el.majorMedicalEvent.value = state.majorMedicalEvent;
+    el.indoorMobility.value = state.indoorMobility;
+    el.outdoorMobility.value = state.outdoorMobility;
+    el.adlStatus.value = state.adlStatus;
+    el.toiletStatus.value = state.toiletStatus;
+    el.dietType.value = state.dietType;
+
+    el.cognitiveStatus.value = state.cognitiveStatus;
+    el.emotionStatus.value = state.emotionStatus;
+    el.sleepType.value = state.sleepType;
+    el.sleepDetail.value = state.sleepDetail;
+
+    el.mainCarer.value = state.mainCarer;
+    el.carerRelation.value = state.carerRelation;
+    el.carerStress.value = state.carerStress;
+    el.otherFamilyNotes.value = state.otherFamilyNotes;
+    el.informalSupportNotes.value = state.informalSupportNotes;
+
+    el.allowance.value = state.allowance;
+    setCheckedValues('.bath-cb', state.bathFacilities);
+    setCheckedValues('.net-cb', state.supportNetwork);
+    el.extraNotes.value = state.extraNotes;
+  };
+
+  const readCurrentState = () => {
+    const modeRadio = document.querySelector('input[name="caseMode"]:checked');
+    return {
+      caseMode: modeRadio ? modeRadio.value : 'family',
+      occupation: el.occupation.value,
+      livingArrangement: el.livingArrangement.value,
+      targetService: el.targetService.value,
+      diseases: getCheckedValues('.disease-cb'),
+      diseaseExtra: el.diseaseExtra.value,
+      hospital: el.hospital.value,
+      hospitalCustom: el.hospitalCustom.value,
+      majorMedicalEvent: el.majorMedicalEvent.value,
+      indoorMobility: el.indoorMobility.value,
+      outdoorMobility: el.outdoorMobility.value,
+      adlStatus: el.adlStatus.value,
+      toiletStatus: el.toiletStatus.value,
+      dietType: el.dietType.value,
+      cognitiveStatus: el.cognitiveStatus.value,
+      emotionStatus: el.emotionStatus.value,
+      sleepType: el.sleepType.value,
+      sleepDetail: el.sleepDetail.value,
+      mainCarer: el.mainCarer.value,
+      carerRelation: el.carerRelation.value,
+      carerStress: el.carerStress.value,
+      otherFamilyNotes: el.otherFamilyNotes.value,
+      informalSupportNotes: el.informalSupportNotes.value,
+      allowance: el.allowance.value,
+      bathFacilities: getCheckedValues('.bath-cb'),
+      supportNetwork: getCheckedValues('.net-cb'),
+      extraNotes: el.extraNotes.value
+    };
+  };
+
+  const buildSleepSentence = (sleepType, rawDetail) => {
+    const detail = stripTrailingPunctuation(rawDetail);
+    if (sleepType === 'missing') {
+      return '－ [待補充：睡眠作息情況]。';
+    }
+    if (sleepType === 'hypersomnia') {
+      return '－ 案主有嗜睡情況，即使休息時間長，睡醒後及日間仍感昏昏欲睡、精神疲倦。';
+    }
+    if (sleepType === 'poor') {
+      const timeStr = detail
+        ? (detail.includes('睡覺') ? `每日大約${detail}` : `每日大約${detail}睡覺`)
+        : '每日睡眠時間不足5小時';
+      return `－ ${timeStr}，睡眠時間不足，睡醒後仍感疲倦，日間精神欠佳。`;
+    }
+    const goodTimeStr = detail
+      ? (detail.includes('睡覺') ? `每日大約${detail}` : `每日大約${detail}睡覺`)
+      : '每日睡眠充足';
+    return `－ ${goodTimeStr}，睡醒後感覺有精神。`;
+  };
+
+  // 核心確定性報告組裝引擎 (100% 零幻覺保證)
+  const compileReportText = (state) => {
+    const jobSentence = formatOccupationSentence(state.occupation);
+    const livingClean = stripTrailingPunctuation(state.livingArrangement) || '[待補充：婚姻及同住安排]';
+
+    const allDiseases = [...state.diseases];
+    const extraDis = stripTrailingPunctuation(state.diseaseExtra);
+    if (extraDis) allDiseases.push(extraDis);
+    const diseaseStr = allDiseases.length > 0 ? allDiseases.join('、') : '[待補充：慢性疾病]';
+
+    const hospitalStr = state.hospital === 'custom'
+      ? (stripTrailingPunctuation(state.hospitalCustom) || '[待補充：覆診醫院]')
+      : state.hospital;
+
+    const majorEventClean = stripTrailingPunctuation(state.majorMedicalEvent) || '[待補充：近期病歷或跌倒／中風經過]';
+    const adlClean = stripTrailingPunctuation(state.adlStatus) || '[待補充：ADL及IADL自理情況]';
+    const cogClean = stripTrailingPunctuation(state.cognitiveStatus) || '[待補充：認知能力情況]';
+    const emoClean = stripTrailingPunctuation(state.emotionStatus) || '案主情緒穩定，沒有精神科覆診記錄';
+    const sleepSentence = buildSleepSentence(state.sleepType, state.sleepDetail);
+
+    const bathStr = state.bathFacilities.length > 0
+      ? state.bathFacilities.join('、')
+      : '[待補充：浴室安全設施]';
+
+    const netBlock = state.supportNetwork.length > 0
+      ? state.supportNetwork.map(item => `－ ${item}`).join('\n')
+      : '－ EDECC';
+
+    const followUpServiceLine = (state.targetService.includes('CCSV') && !state.targetService.includes('長期護理'))
+      ? '－ 協助安排CCSV服務'
+      : '－ 申請輪候長期護理服務';
+
+    const formattedOtherFamily = formatMultiLineBullets(state.otherFamilyNotes);
+
+    if (state.caseMode === 'solo') {
+      const informalClean = stripTrailingPunctuation(state.informalSupportNotes);
+      const informalLine = informalClean ? `\n－ ${informalClean}。` : '';
+
+      return `求助問題：*
+長者獨居，因${majorEventClean}致自理能力退化，擔心日後未能照顧自己，故欲申請${state.targetService}。
+
+家庭圖：
+[插入家庭圖]
+
+背景資料：*
+－ ${jobSentence}
+－ ${livingClean}。
+
+健康狀況（日常獨立及自我照顧能力）：
+－ ${majorEventClean}。
+－ 案主患${diseaseStr}，主要於${hospitalStr}覆診。
+－ 案主家中${state.indoorMobility}，外出則需${state.outdoorMobility}。
+－ ${adlClean}。
+－ 如廁上案主${state.toiletStatus}。
+－ 餐膳上案主可以食用${state.dietType}。
+
+情緒狀況（精神病記錄／暴力傾向／虐待記錄）：
+－ ${cogClean}。
+－ ${emoClean}。
+${sleepSentence}
+
+與護老者或其他親人的關係：
+${formattedOtherFamily || '－ 案主與家人關係疏離。'}
+
+護老者的能力及情緒狀況：
+－ 案主獨居，與家人關係疏離，現時未有正式護老者。${informalLine}
+
+經濟狀況：
+－ 案主正領取${state.allowance}，另有積蓄，暫無經濟困難。
+
+居住狀況：
+－ 家居環境整潔，雜物已妥善放置。
+－ 浴室備有${bathStr}。
+
+支援網絡／對外聯絡／其他機構提供服務：
+${netBlock}
+
+跟進計劃：*
+${followUpServiceLine}
+－ 跟進案主身心狀況`;
+    }
+
+    // 同住／有照顧者模式 (Family / Maid Co-Care Mode)
+    const hasMaidSupport = state.carerStress === 'low_maid' || state.supportNetwork.includes('傭人');
+    const carerProblemClause = state.carerStress === 'high'
+      ? `同住${state.mainCarer}感照顧吃力，擔心日後難以持續照顧案主`
+      : `同住${state.mainCarer}擔心日後難以持續照顧案主`;
+
+    const preparerTitle = hasMaidSupport ? `${state.mainCarer}及傭人` : state.mainCarer;
+    const dietSentence = state.dietType.startsWith('[待補充')
+      ? `－ 餐膳上案主可以食用${state.dietType}。`
+      : `－ 餐膳上案主可以食用${state.dietType}，由${preparerTitle}預備。`;
+
+    let carerStressSentence = '';
+    if (state.carerStress === 'high') {
+      carerStressSentence = `${state.mainCarer}表示照顧上感到吃力，照顧壓力較大。`;
+    } else if (state.carerStress === 'low_maid') {
+      carerStressSentence = `有傭人分擔照顧，${state.mainCarer}表示照顧壓力不大。`;
+    } else {
+      carerStressSentence = `案主尚算配合，${state.mainCarer}表示照顧壓力不大。`;
+    }
+
+    const extraFamilyLines = formattedOtherFamily ? `\n${formattedOtherFamily}` : '';
+
+    return `求助問題：*
+案主因${majorEventClean}，現時身體及自理能力退化。${carerProblemClause}，故欲為其申請${state.targetService}。
+
+家庭圖：
+[插入家庭圖]
+
+背景資料：*
+－ ${jobSentence}
+－ ${livingClean}。
+
+健康狀況（日常獨立及自我照顧能力）：
+－ 案主患${diseaseStr}，主要於${hospitalStr}覆診。
+－ ${majorEventClean}。
+－ 案主家中${state.indoorMobility}，外出則需${state.outdoorMobility}。
+－ ${adlClean}。
+－ 如廁上案主${state.toiletStatus}。
+${dietSentence}
+
+情緒狀況（精神病記錄／暴力傾向／虐待記錄）：
+－ ${cogClean}。
+－ ${emoClean}。
+${sleepSentence}
+
+與護老者或其他親人的關係：
+－ ${state.mainCarer}：同住，為主要照顧者，關係${state.carerRelation}。${extraFamilyLines}
+
+護老者的能力及情緒狀況：
+－ ${state.mainCarer}為主要照顧者，主力照顧案主的起居及日常家務。${carerStressSentence}
+
+經濟狀況：
+－ 案主正領取${state.allowance}，另有積蓄，暫無經濟困難。
+
+居住狀況：
+－ 家居環境整潔，雜物已妥善放置。
+－ 浴室備有${bathStr}。
+
+支援網絡／對外聯絡／其他機構提供服務：
+${netBlock}
+
+跟進計劃：*
+${followUpServiceLine}
+－ 跟進案主身心狀況
+－ 關顧護老者照顧狀況`;
+  };
+
+  // 產生 0 秒確定性報告
+  const handleInstantDraft = () => {
+    const state = readCurrentState();
+    el.reportOutput.value = compileReportText(state);
+    el.genStatus.textContent = '⚡ 已產生即時初稿';
+  };
+
+  // 讀取 AnythingLLM 工作區清單
+  const loadWorkspaces = async (preselectSlug = '') => {
+    const baseUrl = el.apiUrl.value.trim().replace(/\/$/, '');
+    const apiKey = el.apiKey.value.trim();
+
+    if (!apiKey) {
+      alert('請先在上方輸入 AnythingLLM API Key！');
+      return;
+    }
+
+    try {
+      el.connStatus.textContent = '連線中...';
+      const response = await fetch(`${baseUrl}/api/v1/workspaces`, {
+        headers: { 'Authorization': `Bearer ${apiKey}` }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP 狀態碼 ${response.status}`);
+      }
+
+      const data = await response.json();
+      el.workspaceSlug.innerHTML = '';
+
+      (data.workspaces || []).forEach(ws => {
+        const opt = document.createElement('option');
+        opt.value = ws.slug;
+        opt.textContent = `${ws.name} (${ws.slug})`;
+        el.workspaceSlug.appendChild(opt);
+      });
+
+      if (preselectSlug && Array.from(el.workspaceSlug.options).some(o => o.value === preselectSlug)) {
+        el.workspaceSlug.value = preselectSlug;
+      }
+
+      localStorage.setItem(STORAGE_KEYS.URL, baseUrl);
+      localStorage.setItem(STORAGE_KEYS.KEY, apiKey);
+      if (el.workspaceSlug.value) {
+        localStorage.setItem(STORAGE_KEYS.SLUG, el.workspaceSlug.value);
+      }
+
+      el.connStatus.textContent = '🟢 已連線';
+    } catch (err) {
+      el.connStatus.textContent = '🔴 連線失敗';
+      const isHttpsToLocal = window.location.protocol === 'https:' && baseUrl.startsWith('http://localhost');
+      const hint = isHttpsToLocal
+        ? '\n\n提示：您目前透過 HTTPS (例如 GitHub Pages) 開啟網頁，瀏覽器預設會封鎖連線至本機 http://localhost:3001。若需連結本機 AnythingLLM，請將 index.html 下載至電腦桌面直接開啟，即可正常連線。'
+        : '';
+      alert(`無法連線至 AnythingLLM：${err.message}${hint}`);
+    }
+  };
+
+  // 呼叫 AnythingLLM (先自動 /reset 清空舊記憶，再發送結構化初稿)
+  const handleAiGenerate = async () => {
+    const baseUrl = el.apiUrl.value.trim().replace(/\/$/, '');
+    const apiKey = el.apiKey.value.trim();
+    const slug = el.workspaceSlug.value;
+
+    if (!apiKey || !slug) {
+      alert('請先在頂部輸入 API Key 並點擊「1. 讀取工作區」！（若無須使用 AI 潤飾，可直接點擊橙色「⚡ 1. 即時組合標準初稿」按鈕）');
+      return;
+    }
+
+    const state = readCurrentState();
+    const baseDraft = compileReportText(state);
+    const extraClean = stripTrailingPunctuation(state.extraNotes);
+
+    const promptForQwen = `請嚴格按照系統設定的核心規則，將以下已核對的接案報告初稿進行語句潤飾，使其通順自然（必須100%保留所有「[待補充：...]」標記、11個標準標題及「－ 」條列格式，嚴禁自行編造未提及的資料，嚴禁輸出（LTC）或任何解釋性備註）：
+
+【已核對之報告初稿】：
+${baseDraft}${extraClean ? `\n\n【額外補充速記（請自然融入對應欄位）】：\n${extraClean}。` : ''}`;
+
+    try {
+      el.btnAiGenerate.disabled = true;
+      el.genStatus.textContent = '🧹 正在清除舊對話記憶 (/reset)...';
+
+      await fetch(`${baseUrl}/api/v1/workspace/${slug}/chat`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ message: '/reset', mode: 'chat' })
+      });
+
+      el.genStatus.textContent = '🤖 Qwen3-4B 生成中 (約需 2-3 分鐘)...';
+      el.reportOutput.value = '正在由本機 Qwen3-4B-Instruct 生成報告中，請稍候...\n\n（提示：您亦隨時可點擊左側「⚡ 1. 即時組合標準初稿」取得 0 秒免等待版本）';
+
+      const response = await fetch(`${baseUrl}/api/v1/workspace/${slug}/chat`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ message: promptForQwen, mode: 'chat' })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP 狀態碼 ${response.status}`);
+      }
+
+      const data = await response.json();
+      const cleanedOutput = (data.textResponse || '')
+        .replace(/<think>[\s\S]*?<\/think>/gi, '')
+        .trim();
+
+      el.reportOutput.value = cleanedOutput || baseDraft;
+      el.genStatus.textContent = '✅ AI 潤飾完成';
+    } catch (err) {
+      el.genStatus.textContent = '⚠️ AI 連線異常 (已切換為標準初稿)';
+      el.reportOutput.value = baseDraft;
+      alert(`呼叫 AnythingLLM 失敗 (${err.message})，系統已自動為您輸出零幻覺標準初稿。`);
+    } finally {
+      el.btnAiGenerate.disabled = false;
+    }
+  };
+
+  // 複製報告至剪貼簿 (相容 https:// 與 file://)
+  const handleCopyReport = async () => {
+    const content = el.reportOutput.value.trim();
+    if (!content) return;
+
+    try {
+      await navigator.clipboard.writeText(content);
+    } catch {
+      el.reportOutput.select();
+      document.execCommand('copy');
+    }
+    el.genStatus.textContent = '📋 已複製到剪貼簿！';
+  };
+
+  // 綁定所有事件監聽器
+  const bindEvents = () => {
+    // 模式切換
+    document.querySelectorAll('input[name="caseMode"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        const newMode = e.target.value;
+        updateModeUI(newMode);
+        el.netFamily.checked = (newMode === 'family');
+        if (newMode === 'solo' && el.adlStatus.value === DEFAULT_STATE.adlStatus) {
+          el.adlStatus.value = '案主ADL及部分IADL可自理';
+        } else if (newMode === 'family' && el.adlStatus.value === '案主ADL及部分IADL可自理') {
+          el.adlStatus.value = DEFAULT_STATE.adlStatus;
+        }
       });
     });
 
-    let currentSection = 0;
-
-    const navigation = document.getElementById("navigation");
-    const formArea = document.getElementById("formArea");
-    const output = document.getElementById("output");
-
-    function escapeHTML(value) {
-      return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;");
-    }
-
-    function first(key) {
-      return state[key][0] || "";
-    }
-
-    function joinChoices(key) {
-      return state[key].join("、");
-    }
-
-    function addFullStop(sentence) {
-      if (!sentence) return "";
-
-      if (/[。；！？]$/.test(sentence)) {
-        return sentence;
-      }
-
-      return sentence + "。";
-    }
-
-    function selectedCount(section) {
-      return section.groups.reduce((total, group) => {
-        if (group.type === "text") {
-          return total + (state[group.key].trim() ? 1 : 0);
-        }
-
-        return total + state[group.key].length;
-      }, 0);
-    }
-
-    function renderNavigation() {
-      navigation.innerHTML =
-        '<div class="navigation-title">報告範疇</div>' +
-        sections.map((section, index) => `
-          <button
-            class="navigation-button ${index === currentSection ? "active" : ""}"
-            data-index="${index}"
-          >
-            <span class="navigation-number">${index + 1}</span>
-            <span class="navigation-label">${section.title}</span>
-          </button>
-        `).join("");
-
-      navigation
-        .querySelectorAll(".navigation-button")
-        .forEach(button => {
-          button.addEventListener("click", () => {
-            saveVisibleTextFields();
-            currentSection = Number(button.dataset.index);
-            renderSection();
-          });
-        });
-    }
-
-    function renderSection() {
-      const section = sections[currentSection];
-
-      renderNavigation();
-
-      document.getElementById("eyebrow").textContent =
-        `第 ${currentSection + 1} 部分，共 ${sections.length} 部分`;
-
-      document.getElementById("sectionTitle").textContent =
-        section.title;
-
-      document.getElementById("sectionDescription").textContent =
-        section.description;
-
-      document.getElementById("stepText").textContent =
-        `${currentSection + 1} / ${sections.length}`;
-
-      document.getElementById("previousButton").disabled =
-        currentSection === 0;
-
-      document.getElementById("nextButton").textContent =
-        currentSection === sections.length - 1
-          ? "完成選擇"
-          : "下一項 →";
-
-      formArea.innerHTML = section.groups.map(group => {
-        if (group.type === "text") {
-          return `
-            <div class="field">
-              <label class="field-title" for="${group.key}">
-                ${group.label}
-              </label>
-
-              <textarea
-                class="text-input"
-                id="${group.key}"
-                data-key="${group.key}"
-                placeholder="${escapeHTML(group.placeholder || "")}"
-              >${escapeHTML(state[group.key])}</textarea>
-            </div>
-          `;
-        }
-
-        const helpText =
-          group.type === "single" ? "單選" : "可選多項";
-
-        return `
-          <div class="field">
-            <div class="field-title">${group.label}</div>
-            <div class="hint">${helpText}</div>
-
-            <div class="choices">
-              ${group.options.map(option => `
-                <button
-                  class="choice ${
-                    state[group.key].includes(option)
-                      ? "selected"
-                      : ""
-                  }"
-                  data-key="${group.key}"
-                  data-value="${escapeHTML(option)}"
-                  data-type="${group.type}"
-                >
-                  ${option}
-                </button>
-              `).join("")}
-            </div>
-          </div>
-        `;
-      }).join("");
-
-      formArea.querySelectorAll(".choice").forEach(button => {
-        button.addEventListener("click", () => {
-          const key = button.dataset.key;
-          const value = button.dataset.value;
-          const type = button.dataset.type;
-          const values = state[key];
-
-          if (type === "single") {
-            state[key] = values.includes(value) ? [] : [value];
-          } else {
-            const existingIndex = values.indexOf(value);
-
-            if (existingIndex === -1) {
-              values.push(value);
-            } else {
-              values.splice(existingIndex, 1);
-            }
-          }
-
-          renderSection();
-        });
-      });
-
-      formArea.querySelectorAll(".text-input").forEach(input => {
-        input.addEventListener("input", event => {
-          state[event.target.dataset.key] = event.target.value;
-          updateSelectionCount();
-        });
-      });
-
-      updateSelectionCount();
-    }
-
-    function updateSelectionCount() {
-      const section = sections[currentSection];
-
-      document.getElementById("selectionCount").textContent =
-        `已選 ${selectedCount(section)} 項`;
-    }
-
-    function saveVisibleTextFields() {
-      formArea.querySelectorAll(".text-input").forEach(input => {
-        state[input.dataset.key] = input.value;
-      });
-    }
-
-    /*
-     * 將按鈕選擇轉換成完整句子。
-     * 每一個報告範疇使用自己的句子規則。
-     */
-    function buildReport() {
-      const report = [];
-      let sentences = [];
-
-      // 求助問題
-      if (first("trigger")) {
-        sentences.push("案主" + first("trigger"));
-      }
-
-      if (first("concern")) {
-        const concern = first("concern");
-
-        if (concern.startsWith("家人")) {
-          sentences.push(concern);
-        } else {
-          sentences.push("家人擔心" + concern);
-        }
-      }
-
-      if (state.serviceNeed.length) {
-        sentences.push("故欲" + joinChoices("serviceNeed"));
-      }
-
-      if (sentences.length) {
-        report.push({
-          heading: "求助問題",
-          text: sentences.map(addFullStop).join("")
-        });
-      }
-
-      // 背景資料
-      sentences = [];
-
-      if (first("pastRole")) {
-        sentences.push("案主" + first("pastRole"));
-      }
-
-      state.transition.forEach(item => {
-        sentences.push(
-          item.startsWith("配偶") ? "案主" + item : item
-        );
-      });
-
-      if (state.backgroundNote.trim()) {
-        sentences.push(state.backgroundNote.trim());
-      }
-
-      if (sentences.length) {
-        report.push({
-          heading: "背景資料",
-          text: sentences.map(addFullStop).join("\n")
-        });
-      }
-
-      // 健康狀況
-      sentences = [];
-
-      if (state.conditions.length) {
-        sentences.push("案主患" + joinChoices("conditions"));
-      }
-
-      state.medicalFollowUp.forEach(item => {
-        sentences.push(item);
-      });
-
-      if (first("mobility")) {
-        sentences.push("案主" + first("mobility"));
-      }
-
-      if (first("swallowing")) {
-        sentences.push("案主" + first("swallowing"));
-      }
-
-      if (first("continence")) {
-        sentences.push(first("continence"));
-      }
-
-      if (first("dailyLiving")) {
-        sentences.push("案主" + first("dailyLiving"));
-      }
-
-      if (state.healthNote.trim()) {
-        sentences.push(state.healthNote.trim());
-      }
-
-      if (sentences.length) {
-        report.push({
-          heading: "健康狀況（日常獨立及自我照顧能力）",
-          text: sentences.map(addFullStop).join("\n")
-        });
-      }
-
-      // 情緒及認知
-      sentences = [];
-
-      if (first("mood")) {
-        sentences.push("案主" + first("mood"));
-      }
-
-      state.mentalHealth.forEach(item => {
-        sentences.push(item);
-      });
-
-      if (first("cognition")) {
-        sentences.push("案主" + first("cognition"));
-      }
-
-      if (state.emotionNote.trim()) {
-        sentences.push(state.emotionNote.trim());
-      }
-
-      if (sentences.length) {
-        report.push({
-          heading: "情緒狀況（精神病記錄／暴力傾向／虐待記錄）",
-          text: sentences.map(addFullStop).join("\n")
-        });
-      }
-
-      // 家庭及親屬
-      sentences = [];
-
-      if (first("livingArrangement")) {
-        sentences.push(
-          first("livingArrangement") === "獨居"
-            ? "案主獨居"
-            : "案主" + first("livingArrangement")
-        );
-      }
-
-      state.familyRelationship.forEach(item => {
-        sentences.push(item);
-      });
-
-      if (state.familyNote.trim()) {
-        sentences.push(state.familyNote.trim());
-      }
-
-      if (sentences.length) {
-        report.push({
-          heading: "與護老者或其他親人的關係",
-          text: sentences.map(addFullStop).join("\n")
-        });
-      }
-
-      // 護老者
-      sentences = [];
-
-      if (first("mainCarer")) {
-        sentences.push(first("mainCarer"));
-      }
-
-      if (state.carerTasks.length) {
-        sentences.push(
-          "日常主要" + joinChoices("carerTasks")
-        );
-      }
-
-      if (first("carerPressure")) {
-        sentences.push(first("carerPressure"));
-      }
-
-      if (state.carerNote.trim()) {
-        sentences.push(state.carerNote.trim());
-      }
-
-      if (sentences.length) {
-        report.push({
-          heading: "護老者的能力及情緒狀況",
-          text: sentences.map(addFullStop).join("\n")
-        });
-      }
-
-      // 經濟
-      sentences = [];
-
-      if (state.benefits.length) {
-        sentences.push("案主" + joinChoices("benefits"));
-      }
-
-      if (first("financialSituation")) {
-        sentences.push(first("financialSituation"));
-      }
-
-      if (state.financeNote.trim()) {
-        sentences.push(state.financeNote.trim());
-      }
-
-      if (sentences.length) {
-        report.push({
-          heading: "經濟狀況",
-          text: sentences.map(addFullStop).join("")
-        });
-      }
-
-      // 居住狀況
-      sentences = [];
-
-      if (first("homeCondition")) {
-        sentences.push(first("homeCondition"));
-      }
-
-      if (state.homeEquipment.length) {
-        sentences.push(joinChoices("homeEquipment"));
-      }
-
-      state.homeRecommendations.forEach(item => {
-        sentences.push("工作員" + item);
-      });
-
-      if (state.homeNote.trim()) {
-        sentences.push(state.homeNote.trim());
-      }
-
-      if (sentences.length) {
-        report.push({
-          heading: "居住狀況",
-          text: sentences.map(addFullStop).join("\n")
-        });
-      }
-
-      // 支援網絡
-      sentences = [];
-
-      if (state.informalSupport.length) {
-        sentences.push(
-          "非正式支援：" + joinChoices("informalSupport")
-        );
-      }
-
-      if (state.formalSupport.length) {
-        sentences.push(
-          "正式支援：" + joinChoices("formalSupport")
-        );
-      }
-
-      if (state.supportNote.trim()) {
-        sentences.push(state.supportNote.trim());
-      }
-
-      if (sentences.length) {
-        report.push({
-          heading: "支援網絡／對外聯絡／其他機構提供服務",
-          text: sentences.map(addFullStop).join("\n")
-        });
-      }
-
-      // 跟進計劃
-      sentences = state.followUpPlans.map(item => "－" + item);
-
-      if (state.planNote.trim()) {
-        sentences.push("－" + state.planNote.trim());
-      }
-
-      if (sentences.length) {
-        report.push({
-          heading: "跟進計劃",
-          text: sentences.join("\n")
-        });
-      }
-
-      return report;
-    }
-
-    function generateReport() {
-      saveVisibleTextFields();
-
-      const report = buildReport();
-
-      if (!report.length) {
-        output.innerHTML = `
-          <div class="empty-output">
-            <strong>請先選擇至少一項描述</strong>
-          </div>
-        `;
-        return;
-      }
-
-      output.innerHTML =
-        report.map(section => `
-          <section class="report-section">
-            <h3>${escapeHTML(section.heading)}：</h3>
-            <p>${escapeHTML(section.text).replaceAll("\n", "<br>")}</p>
-          </section>
-        `).join("") +
-        `
-          <div class="tip">
-            <strong>撰寫提示</strong><br>
-            草稿已依常見句式排列。提交正式報告前，請核實日期、
-            醫院、覆診期、評估分數及服務頻率。
-          </div>
-        `;
-    }
-
-    function getPlainTextReport() {
-      return buildReport()
-        .map(section => {
-          return section.heading + "：\n" + section.text;
-        })
-        .join("\n\n");
-    }
-
-    function clearAll() {
-      sections.forEach(section => {
-        section.groups.forEach(group => {
-          state[group.key] =
-            group.type === "text" ? "" : [];
-        });
-      });
-
-      output.innerHTML = `
-        <div class="empty-output">
-          <div>
-            <div style="font-size: 30px">✦</div>
-            <strong>尚未產生內容</strong><br>
-            完成選擇後按「產生報告」
-          </div>
-        </div>
-      `;
-
-      renderSection();
-    }
-
-    document
-      .getElementById("previousButton")
-      .addEventListener("click", () => {
-        saveVisibleTextFields();
-
-        if (currentSection > 0) {
-          currentSection--;
-          renderSection();
+    // 一鍵勾選三高
+    el.cbThreeHighs.addEventListener('change', (e) => {
+      const isChecked = e.target.checked;
+      document.querySelectorAll('.disease-cb').forEach(cb => {
+        if (THREE_HIGHS_LIST.includes(cb.value)) {
+          cb.checked = isChecked;
         }
       });
+    });
 
-    document
-      .getElementById("nextButton")
-      .addEventListener("click", () => {
-        saveVisibleTextFields();
+    // 單別慢病變更時同步「三高」勾選狀態
+    document.querySelectorAll('.disease-cb').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const currentDiseases = getCheckedValues('.disease-cb');
+        el.cbThreeHighs.checked = THREE_HIGHS_LIST.every(d => currentDiseases.includes(d));
+      });
+    });
 
-        if (currentSection < sections.length - 1) {
-          currentSection++;
-          renderSection();
-        } else {
-          generateReport();
+    // 自訂醫院顯示切換
+    el.hospital.addEventListener('change', () => {
+      const isCustom = el.hospital.value === 'custom';
+      el.hospitalCustom.classList.toggle('hidden', !isCustom);
+      if (isCustom) el.hospitalCustom.focus();
+    });
+
+    // 照顧壓力選擇「有傭人分擔」時自動勾選支援網絡「傭人」
+    el.carerStress.addEventListener('change', () => {
+      if (el.carerStress.value === 'low_maid') {
+        el.netMaid.checked = true;
+      }
+    });
+
+    // 虛擬測試個案按鈕
+    document.querySelectorAll('[data-dummy]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const caseId = Number(btn.getAttribute('data-dummy'));
+        if (DUMMY_CASES[caseId]) {
+          applyState(DUMMY_CASES[caseId]);
+          handleInstantDraft();
+          el.genStatus.textContent = `🧪 已載入測試個案 ${caseId}`;
         }
       });
+    });
 
-    document
-      .getElementById("generateButton")
-      .addEventListener("click", generateReport);
+    // 清空表單
+    el.btnResetForm.addEventListener('click', () => {
+      if (confirm('確定要清空目前表單內容以輸入新個案嗎？')) {
+        applyState(DEFAULT_STATE);
+        el.reportOutput.value = '';
+        el.genStatus.textContent = '已清空';
+      }
+    });
 
-    document
-      .getElementById("clearButton")
-      .addEventListener("click", clearAll);
+    // 頂部 API 連線與工作區儲存
+    el.btnLoadWorkspaces.addEventListener('click', () => loadWorkspaces());
+    el.workspaceSlug.addEventListener('change', () => {
+      localStorage.setItem(STORAGE_KEYS.SLUG, el.workspaceSlug.value);
+    });
 
-    document
-      .getElementById("copyButton")
-      .addEventListener("click", async event => {
-        const reportText = getPlainTextReport();
+    // 生成與複製按鈕
+    el.btnInstantDraft.addEventListener('click', handleInstantDraft);
+    el.btnAiGenerate.addEventListener('click', handleAiGenerate);
+    el.btnCopyReport.addEventListener('click', handleCopyReport);
+  };
 
-        if (!reportText) {
-          return;
-        }
+  // 初始化應用程式
+  document.addEventListener('DOMContentLoaded', () => {
+    cacheElements();
+    bindEvents();
+    applyState(DEFAULT_STATE);
 
-        try {
-          await navigator.clipboard.writeText(reportText);
+    const savedUrl = localStorage.getItem(STORAGE_KEYS.URL);
+    const savedKey = localStorage.getItem(STORAGE_KEYS.KEY);
+    const savedSlug = localStorage.getItem(STORAGE_KEYS.SLUG);
 
-          const button = event.currentTarget;
-          button.textContent = "已複製 ✓";
-
-          setTimeout(() => {
-            button.textContent = "複製全文";
-          }, 1500);
-        } catch (error) {
-          alert("未能自動複製。請手動選取預覽內容。");
-        }
-      });
-
-    renderSection();
-  </script>
+    if (savedUrl) el.apiUrl.value = savedUrl;
+    if (savedKey) {
+      el.apiKey.value = savedKey;
+      loadWorkspaces(savedSlug || '');
+    }
+  });
+})();
+</script>
 </body>
 </html>
