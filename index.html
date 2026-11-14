@@ -14,6 +14,8 @@
       --primary-light: #e6f0ec;
       --accent: #d47230;
       --accent-hover: #b85d20;
+      --danger: #b94a48;
+      --danger-hover: #963836;
       --warn-bg: #fff8eb;
       --warn-border: #edd29f;
       --warn-text: #8c5311;
@@ -71,7 +73,8 @@
       font-weight: 500;
     }
 
-    .api-bar input,
+    .api-bar input[type="text"],
+    .api-bar input[type="password"],
     .api-bar select {
       padding: 5px 8px;
       border-radius: var(--radius-sm);
@@ -80,6 +83,23 @@
       width: auto;
       background: #ffffff;
       color: var(--text);
+    }
+
+    .remember-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 0.82rem;
+      background: rgba(0, 0, 0, 0.15);
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+    }
+
+    .remember-label input {
+      margin: 0;
+      cursor: pointer;
     }
 
     .api-bar button {
@@ -327,6 +347,15 @@
       background: var(--primary-hover);
     }
 
+    .btn-danger {
+      background: var(--danger) !important;
+      color: #ffffff;
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      background: var(--danger-hover) !important;
+    }
+
     .btn-fast {
       background: var(--accent);
       color: #ffffff;
@@ -392,11 +421,14 @@
   <h1>📋 長者地區中心 (EDECC) 個案接案報告助手</h1>
   <div class="api-bar">
     <label for="apiUrl">AnythingLLM 網址:</label>
-    <input type="text" id="apiUrl" value="http://localhost:3001" style="width: 155px;" />
+    <input type="text" id="apiUrl" value="http://localhost:3001" style="width: 150px;" />
     <label for="apiKey">API Key:</label>
-    <input type="password" id="apiKey" placeholder="本機 API Key (選填)" style="width: 145px;" />
+    <input type="password" id="apiKey" placeholder="本機 API Key (選填)" style="width: 135px;" />
+    <label class="remember-label" title="勾選後將金鑰永久儲存於此電腦瀏覽器；未勾選則關閉分頁即自動清除">
+      <input type="checkbox" id="cbRememberKey" /> 記住 Key
+    </label>
     <button type="button" id="btnLoadWorkspaces">1. 讀取工作區</button>
-    <select id="workspaceSlug" aria-label="選擇 AnythingLLM 工作區" style="min-width: 145px;">
+    <select id="workspaceSlug" aria-label="選擇 AnythingLLM 工作區" style="min-width: 140px;">
       <option value="">-- 請先讀取工作區 --</option>
     </select>
     <span id="connStatus">未連線</span>
@@ -467,7 +499,27 @@
 
     <!-- 2. 健康、行動與自理 -->
     <div class="section-box">
-      <div class="section-title">2. 健康狀況（慢病、病歷、行動、如廁、餐膳）</div>
+      <div class="section-title">2. 健康狀況（病歷事件、慢病、行動、如廁、餐膳）</div>
+      <div class="grid-2">
+        <div class="field">
+          <label class="field-label" for="majorMedicalEvent">引發事件／中風／跌倒／出入院經過 (健康狀況第1行)</label>
+          <input type="text" id="majorMedicalEvent" placeholder="例：2025年9月中風致左邊身無力" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="hospital">主要覆診醫院 (健康狀況第2行)</label>
+          <select id="hospital">
+            <option value="東區醫院">東區醫院</option>
+            <option value="律敦治醫院">律敦治醫院</option>
+            <option value="東區醫院及律敦治醫院">東區醫院及律敦治醫院</option>
+            <option value="瑪麗醫院">瑪麗醫院</option>
+            <option value="普通科門診">普通科門診</option>
+            <option value="[待補充：覆診醫院]">未提及 (標示待補充)</option>
+            <option value="custom">其他醫院 (手動輸入)</option>
+          </select>
+          <input type="text" id="hospitalCustom" class="hidden" placeholder="請輸入覆診醫院或診所全名" style="margin-top: 6px;" />
+        </div>
+      </div>
+
       <div class="field">
         <span class="field-label">慢性疾病 (可多選及補充)</span>
         <div class="chip-group">
@@ -480,27 +532,7 @@
           <label class="chip"><input type="checkbox" class="disease-cb" value="心臟病" /> 心臟病</label>
           <label class="chip"><input type="checkbox" class="disease-cb" value="白內障" /> 白內障</label>
         </div>
-        <input type="text" id="diseaseExtra" placeholder="其他慢病補充（例：痛風、柏金遜症，以頓號分隔）" style="margin-top: 6px;" />
-      </div>
-
-      <div class="grid-2">
-        <div class="field">
-          <label class="field-label" for="hospital">主要覆診醫院</label>
-          <select id="hospital">
-            <option value="東區醫院">東區醫院</option>
-            <option value="律敦治醫院">律敦治醫院</option>
-            <option value="東區醫院及律敦治醫院">東區醫院及律敦治醫院</option>
-            <option value="瑪麗醫院">瑪麗醫院</option>
-            <option value="普通科門診">普通科門診</option>
-            <option value="[待補充：覆診醫院]">未提及 (標示待補充)</option>
-            <option value="custom">其他醫院 (手動輸入)</option>
-          </select>
-          <input type="text" id="hospitalCustom" class="hidden" placeholder="請輸入覆診醫院或診所全名" style="margin-top: 6px;" />
-        </div>
-        <div class="field">
-          <label class="field-label" for="majorMedicalEvent">引發事件／中風／跌倒／出入院經過</label>
-          <input type="text" id="majorMedicalEvent" placeholder="例：2025年9月中風致左邊身無力" />
-        </div>
+        <input type="text" id="diseaseExtra" placeholder="其他慢病補充（例：痛風、柏金遜症，以頓號或逗號分隔）" style="margin-top: 6px;" />
       </div>
 
       <div class="grid-2">
@@ -593,19 +625,8 @@
       <div class="section-title">4. 親人關係與護老者照顧狀況</div>
       <div class="grid-3" id="familyCarerRow">
         <div class="field">
-          <label class="field-label" for="mainCarer">主要照顧者稱謂</label>
-          <select id="mainCarer">
-            <option value="太太">太太</option>
-            <option value="案夫">案夫</option>
-            <option value="大女">大女</option>
-            <option value="二女">二女</option>
-            <option value="三女">三女</option>
-            <option value="案女">案女</option>
-            <option value="大子">大子</option>
-            <option value="二子">二子</option>
-            <option value="細仔">細仔</option>
-            <option value="案子">案子</option>
-          </select>
+          <label class="field-label" for="mainCarer">主要照顧者稱謂 (自由輸入)</label>
+          <input type="text" id="mainCarer" value="太太" placeholder="例：太太 / 二女 / 傭人 / 細仔" />
         </div>
         <div class="field">
           <label class="field-label" for="carerRelation">與主要照顧者關係</label>
@@ -662,16 +683,16 @@
       </div>
 
       <div class="field">
-        <span class="field-label">支援網絡（勾選項目將逐行放入「支援網絡」欄）</span>
+        <span class="field-label">支援網絡（勾選及下方自訂項目將逐行放入「支援網絡」欄，AI 潤飾後亦 100% 鎖定不變）</span>
         <div class="chip-group">
           <label class="chip"><input type="checkbox" class="net-cb" value="家人" checked id="netFamily" /> 家人</label>
           <label class="chip"><input type="checkbox" class="net-cb" value="EDECC" checked /> EDECC</label>
           <label class="chip"><input type="checkbox" class="net-cb" value="傭人" id="netMaid" /> 傭人</label>
-          <label class="chip"><input type="checkbox" class="net-cb" value="待安排CCSV服務" /> 待安排CCSV服務</label>
           <label class="chip"><input type="checkbox" class="net-cb" value="循道IDSP跟進中" /> 循道IDSP跟進中</label>
           <label class="chip"><input type="checkbox" class="net-cb" value="律敦治ICM" /> 律敦治ICM</label>
           <label class="chip"><input type="checkbox" class="net-cb" value="看更" /> 看更</label>
         </div>
+        <input type="text" id="supportNetworkExtra" placeholder="其他支援網絡補充（以頓號「、」分隔，例：聖雅各送飯服務、教會義工，AI 潤飾後將原字保留）" style="margin-top: 6px;" />
       </div>
 
       <div class="field">
@@ -710,10 +731,38 @@
   const STORAGE_KEYS = {
     URL: 'edecc_allm_url',
     KEY: 'edecc_allm_key',
-    SLUG: 'edecc_allm_slug'
+    SLUG: 'edecc_allm_slug',
+    REMEMBER: 'edecc_allm_remember'
   };
 
   const THREE_HIGHS_LIST = ['高血壓', '糖尿病', '膽固醇過高'];
+
+  const SOLO_DEFAULT_ADL = '案主ADL及部分IADL可自理';
+
+  // 自動雙向綁定之純文字與下拉選單欄位清單
+  const TEXT_FIELD_KEYS = [
+    'occupation', 'livingArrangement', 'targetService', 'diseaseExtra',
+    'hospital', 'hospitalCustom', 'majorMedicalEvent', 'indoorMobility',
+    'outdoorMobility', 'adlStatus', 'toiletStatus', 'dietType',
+    'cognitiveStatus', 'emotionStatus', 'sleepType', 'sleepDetail',
+    'mainCarer', 'carerRelation', 'carerStress', 'otherFamilyNotes',
+    'informalSupportNotes', 'allowance', 'supportNetworkExtra', 'extraNotes'
+  ];
+
+  // 完整 11 個標準報告標題驗證清單
+  const REQUIRED_HEADERS = [
+    '求助問題：*',
+    '家庭圖：',
+    '背景資料：*',
+    '健康狀況（日常獨立及自我照顧能力）：',
+    '情緒狀況（精神病記錄／暴力傾向／虐待記錄）：',
+    '與護老者或其他親人的關係：',
+    '護老者的能力及情緒狀況：',
+    '經濟狀況：',
+    '居住狀況：',
+    '支援網絡／對外聯絡／其他機構提供服務：',
+    '跟進計劃：*'
+  ];
 
   const DEFAULT_STATE = {
     caseMode: 'family',
@@ -742,6 +791,7 @@
     allowance: 'OALA',
     bathFacilities: [],
     supportNetwork: ['家人', 'EDECC'],
+    supportNetworkExtra: '',
     extraNotes: ''
   };
 
@@ -772,7 +822,8 @@
       informalSupportNotes: '',
       allowance: 'OALA',
       bathFacilities: [],
-      supportNetwork: ['家人', 'EDECC', '待安排CCSV服務'],
+      supportNetwork: ['家人', 'EDECC'],
+      supportNetworkExtra: '',
       extraNotes: ''
     },
     2: {
@@ -802,6 +853,7 @@
       allowance: 'OAA',
       bathFacilities: ['扶手', '防滑墊', '沖涼椅'],
       supportNetwork: ['家人', 'EDECC', '傭人'],
+      supportNetworkExtra: '',
       extraNotes: ''
     },
     3: {
@@ -816,7 +868,7 @@
       majorMedicalEvent: '2026年5月因氣促及脊椎骨折入院，8月出院',
       indoorMobility: '可自如走動',
       outdoorMobility: '使用拐杖',
-      adlStatus: '案主ADL及部分IADL可自理',
+      adlStatus: SOLO_DEFAULT_ADL,
       toiletStatus: '沒有失禁，無需使用尿片',
       dietType: '正常餐',
       cognitiveStatus: '案主認知能力正常，惟聽力退化需大聲對答',
@@ -831,27 +883,28 @@
       allowance: 'OALA',
       bathFacilities: ['防滑墊'],
       supportNetwork: ['EDECC', '循道IDSP跟進中', '看更'],
+      supportNetworkExtra: '',
       extraNotes: ''
     }
   };
 
   const el = {};
+  let activeAbortController = null;
+  let maidAutoCheckedByStress = false;
+
   const cacheElements = () => {
-    const ids = [
-      'apiUrl', 'apiKey', 'btnLoadWorkspaces', 'workspaceSlug', 'connStatus',
+    const controlIds = [
+      'apiUrl', 'apiKey', 'cbRememberKey', 'btnLoadWorkspaces', 'workspaceSlug', 'connStatus',
       'btnResetForm', 'modeFamilyCard', 'modeSoloCard', 'familyCarerRow', 'soloSupportField',
-      'occupation', 'livingArrangement', 'targetService', 'cbThreeHighs', 'diseaseExtra',
-      'hospital', 'hospitalCustom', 'majorMedicalEvent', 'indoorMobility', 'outdoorMobility',
-      'adlStatus', 'toiletStatus', 'dietType', 'cognitiveStatus', 'emotionStatus',
-      'sleepType', 'sleepDetail', 'mainCarer', 'carerRelation', 'carerStress',
-      'otherFamilyNotes', 'informalSupportNotes', 'allowance', 'netFamily', 'netMaid',
-      'extraNotes', 'btnInstantDraft', 'btnAiGenerate', 'reportOutput', 'genStatus', 'btnCopyReport'
+      'cbThreeHighs', 'netFamily', 'netMaid', 'btnInstantDraft', 'btnAiGenerate',
+      'reportOutput', 'genStatus', 'btnCopyReport'
     ];
-    ids.forEach(id => {
+    [...controlIds, ...TEXT_FIELD_KEYS].forEach(id => {
       el[id] = document.getElementById(id);
     });
   };
 
+  // 字串正規化（保留「細仔」不作轉換）
   const normalizeTerms = (raw) => {
     if (!raw) return '';
     return String(raw)
@@ -865,26 +918,31 @@
       .replace(/\(LTC\)/gi, '');
   };
 
-  const stripTrailingPunctuation = (str) => {
-    return normalizeTerms(str).replace(/[。；;，,、.]+$/, '');
+  // 單次清理句首條列符號與句尾標點（避免重複呼叫 normalizeTerms）
+  const cleanLineContent = (raw) => {
+    return normalizeTerms(raw)
+      .replace(/^[－\-•*]+\s*/, '')
+      .replace(/[。；;，,、.]+$/, '');
   };
 
-  const stripLeadingBullet = (str) => {
-    return normalizeTerms(str).replace(/^[－\-•*]+\s*/, '');
+  const joinChineseList = (items) => {
+    if (!items || items.length === 0) return '';
+    if (items.length === 1) return items[0];
+    return `${items.slice(0, -1).join('、')}及${items[items.length - 1]}`;
   };
 
   const formatMultiLineBullets = (rawText) => {
     if (!rawText || !rawText.trim()) return '';
     return rawText
       .split(/\r?\n/)
-      .map(line => stripTrailingPunctuation(stripLeadingBullet(line)))
+      .map(cleanLineContent)
       .filter(Boolean)
       .map(line => `－ ${line}。`)
       .join('\n');
   };
 
   const formatOccupationSentence = (rawJob) => {
-    const job = stripTrailingPunctuation(rawJob);
+    const job = cleanLineContent(rawJob);
     if (!job) return '案主曾任職[待補充：退休前職業]。';
     if (job.includes('主婦')) return '案主婚後為家庭主婦。';
     const stripped = job.replace(/^前/, '').replace(/^任職/, '').replace(/^曾任職/, '');
@@ -913,79 +971,41 @@
     el.soloSupportField.classList.toggle('hidden', !isSolo);
   };
 
+  // 資料驅動套用表單狀態
   const applyState = (state) => {
     updateModeUI(state.caseMode);
-    el.occupation.value = state.occupation;
-    el.livingArrangement.value = state.livingArrangement;
-    el.targetService.value = state.targetService;
+    TEXT_FIELD_KEYS.forEach(key => {
+      if (el[key] && state[key] !== undefined) {
+        el[key].value = state[key];
+      }
+    });
+    delete el.adlStatus.dataset.dirty;
+    maidAutoCheckedByStress = false;
 
+    el.hospitalCustom.classList.toggle('hidden', state.hospital !== 'custom');
     setCheckedValues('.disease-cb', state.diseases);
     el.cbThreeHighs.checked = THREE_HIGHS_LIST.every(d => state.diseases.includes(d));
-    el.diseaseExtra.value = state.diseaseExtra;
-
-    el.hospital.value = state.hospital;
-    el.hospitalCustom.value = state.hospitalCustom;
-    el.hospitalCustom.classList.toggle('hidden', state.hospital !== 'custom');
-
-    el.majorMedicalEvent.value = state.majorMedicalEvent;
-    el.indoorMobility.value = state.indoorMobility;
-    el.outdoorMobility.value = state.outdoorMobility;
-    el.adlStatus.value = state.adlStatus;
-    el.toiletStatus.value = state.toiletStatus;
-    el.dietType.value = state.dietType;
-
-    el.cognitiveStatus.value = state.cognitiveStatus;
-    el.emotionStatus.value = state.emotionStatus;
-    el.sleepType.value = state.sleepType;
-    el.sleepDetail.value = state.sleepDetail;
-
-    el.mainCarer.value = state.mainCarer;
-    el.carerRelation.value = state.carerRelation;
-    el.carerStress.value = state.carerStress;
-    el.otherFamilyNotes.value = state.otherFamilyNotes;
-    el.informalSupportNotes.value = state.informalSupportNotes;
-
-    el.allowance.value = state.allowance;
     setCheckedValues('.bath-cb', state.bathFacilities);
     setCheckedValues('.net-cb', state.supportNetwork);
-    el.extraNotes.value = state.extraNotes;
   };
 
+  // 資料驅動讀取表單狀態
   const readCurrentState = () => {
     const modeRadio = document.querySelector('input[name="caseMode"]:checked');
-    return {
+    const state = {
       caseMode: modeRadio ? modeRadio.value : 'family',
-      occupation: el.occupation.value,
-      livingArrangement: el.livingArrangement.value,
-      targetService: el.targetService.value,
       diseases: getCheckedValues('.disease-cb'),
-      diseaseExtra: el.diseaseExtra.value,
-      hospital: el.hospital.value,
-      hospitalCustom: el.hospitalCustom.value,
-      majorMedicalEvent: el.majorMedicalEvent.value,
-      indoorMobility: el.indoorMobility.value,
-      outdoorMobility: el.outdoorMobility.value,
-      adlStatus: el.adlStatus.value,
-      toiletStatus: el.toiletStatus.value,
-      dietType: el.dietType.value,
-      cognitiveStatus: el.cognitiveStatus.value,
-      emotionStatus: el.emotionStatus.value,
-      sleepType: el.sleepType.value,
-      sleepDetail: el.sleepDetail.value,
-      mainCarer: el.mainCarer.value,
-      carerRelation: el.carerRelation.value,
-      carerStress: el.carerStress.value,
-      otherFamilyNotes: el.otherFamilyNotes.value,
-      informalSupportNotes: el.informalSupportNotes.value,
-      allowance: el.allowance.value,
       bathFacilities: getCheckedValues('.bath-cb'),
-      supportNetwork: getCheckedValues('.net-cb'),
-      extraNotes: el.extraNotes.value
+      supportNetwork: getCheckedValues('.net-cb')
     };
+    TEXT_FIELD_KEYS.forEach(key => {
+      state[key] = el[key] ? el[key].value : '';
+    });
+    return state;
   };
 
   const buildSleepSentence = (sleepType, rawDetail) => {
-    const detail = stripTrailingPunctuation(rawDetail);
+    const detail = cleanLineContent(rawDetail);
     if (sleepType === 'missing') {
       return '－ [待補充：睡眠作息情況]。';
     }
@@ -1004,156 +1024,161 @@
     return `－ ${goodTimeStr}，睡醒後感覺有精神。`;
   };
 
-  const compileReportText = (state) => {
-    const jobSentence = formatOccupationSentence(state.occupation);
-    const livingClean = stripTrailingPunctuation(state.livingArrangement) || '[待補充：婚姻及同住安排]';
+  const buildSupportNetworkBlock = (state) => {
+    const combinedNet = [...state.supportNetwork];
+    if (state.supportNetworkExtra && state.supportNetworkExtra.trim()) {
+      const customItems = state.supportNetworkExtra
+        .split(/[\r\n、，,；;]+/)
+        .map(cleanLineContent)
+        .filter(Boolean);
+      combinedNet.push(...customItems);
+    }
+    return combinedNet.length > 0
+      ? combinedNet.map(item => `－ ${item}`).join('\n')
+      : '－ EDECC';
+  };
 
-    const allDiseases = [...state.diseases];
-    const extraDis = stripTrailingPunctuation(state.diseaseExtra);
-    if (extraDis) allDiseases.push(extraDis);
-    const diseaseStr = allDiseases.length > 0 ? allDiseases.join('、') : '[待補充：慢性疾病]';
+  // 對齊「申請目標服務」與「跟進計劃：*」所有選項組合
+  const buildFollowUpLines = (targetService, isSolo) => {
+    const lines = [];
+    if (targetService.includes('長期護理')) {
+      lines.push('－ 申請輪候長期護理服務');
+    }
+    if (targetService.includes('RCS') || targetService.includes('CCS')) {
+      lines.push('－ 申請RCS及CCS服務');
+    }
+    if (targetService.includes('CCSV')) {
+      lines.push('－ 協助安排CCSV服務');
+    }
+    if (lines.length === 0) {
+      lines.push('－ 申請輪候長期護理服務');
+    }
+    lines.push('－ 跟進案主身心狀況');
+    if (!isSolo) {
+      lines.push('－ 關顧護老者照顧狀況');
+    }
+    return lines;
+  };
+
+  const lockSupportNetworkSection = (aiText, exactNetBlock) => {
+    const header = '支援網絡／對外聯絡／其他機構提供服務：';
+    const nextHeader = '跟進計劃：*';
+    const startIdx = aiText.indexOf(header);
+    const endIdx = aiText.indexOf(nextHeader);
+    if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+      const before = aiText.slice(0, startIdx).trimEnd();
+      const after = aiText.slice(endIdx);
+      return `${before}\n\n${header}\n${exactNetBlock}\n\n${after}`;
+    }
+    return aiText;
+  };
+
+  // 當 AI 回退至標準初稿時，保留未整合之額外補充速記以防臨床資料遺失
+  const buildFallbackDraftWithWarning = (baseDraft, extraClean) => {
+    if (!extraClean) return baseDraft;
+    return `${baseDraft}\n\n【⚠️ 尚未由 AI 整合之額外補充速記（請手動移至對應欄位）】：\n－ ${extraClean}。`;
+  };
+
+  // 統一結構之確定性報告組裝引擎 (DRY 架構)
+  const compileReportText = (state) => {
+    const isSolo = (state.caseMode === 'solo');
+    const jobSentence = formatOccupationSentence(state.occupation);
+    const livingClean = cleanLineContent(state.livingArrangement) || '[待補充：婚姻及同住安排]';
+
+    const extraDisParts = state.diseaseExtra
+      ? state.diseaseExtra.split(/[、，,；;\s]+/).map(cleanLineContent).filter(Boolean)
+      : [];
+    const allDiseases = [...state.diseases, ...extraDisParts];
+    const diseaseStr = allDiseases.length > 0 ? joinChineseList(allDiseases) : '[待補充：慢性疾病]';
 
     const hospitalStr = state.hospital === 'custom'
-      ? (stripTrailingPunctuation(state.hospitalCustom) || '[待補充：覆診醫院]')
+      ? (cleanLineContent(state.hospitalCustom) || '[待補充：覆診醫院]')
       : state.hospital;
 
-    const majorEventClean = stripTrailingPunctuation(state.majorMedicalEvent) || '[待補充：近期病歷或跌倒／中風經過]';
-    const adlClean = stripTrailingPunctuation(state.adlStatus) || '[待補充：ADL及IADL自理情況]';
-    const cogClean = stripTrailingPunctuation(state.cognitiveStatus) || '[待補充：認知能力情況]';
-    const emoClean = stripTrailingPunctuation(state.emotionStatus) || '案主情緒穩定，沒有精神科覆診記錄';
+    const majorEventClean = cleanLineContent(state.majorMedicalEvent) || '[待補充：近期病歷或跌倒／中風經過]';
+    const adlClean = cleanLineContent(state.adlStatus) || '[待補充：ADL及IADL自理情況]';
+    const cogClean = cleanLineContent(state.cognitiveStatus) || '[待補充：認知能力情況]';
+    const emoClean = cleanLineContent(state.emotionStatus) || '案主情緒穩定，沒有精神科覆診記錄';
     const sleepSentence = buildSleepSentence(state.sleepType, state.sleepDetail);
 
     const bathStr = state.bathFacilities.length > 0
-      ? state.bathFacilities.join('、')
+      ? joinChineseList(state.bathFacilities)
       : '[待補充：浴室安全設施]';
 
-    const netBlock = state.supportNetwork.length > 0
-      ? state.supportNetwork.map(item => `－ ${item}`).join('\n')
-      : '－ EDECC';
-
-    const followUpServiceLine = (state.targetService.includes('CCSV') && !state.targetService.includes('長期護理'))
-      ? '－ 協助安排CCSV服務'
-      : '－ 申請輪候長期護理服務';
-
+    const netBlock = buildSupportNetworkBlock(state);
     const formattedOtherFamily = formatMultiLineBullets(state.otherFamilyNotes);
 
-    if (state.caseMode === 'solo') {
-      const informalClean = stripTrailingPunctuation(state.informalSupportNotes);
-      const informalLine = informalClean ? `\n－ ${informalClean}。` : '';
+    const mainCarerClean = cleanLineContent(state.mainCarer) || '[待補充：主要照顧者]';
+    const hasMaidSupport = (state.carerStress === 'low_maid' || state.supportNetwork.includes('傭人')) && !mainCarerClean.includes('傭人');
+    const preparerTitle = hasMaidSupport ? `${mainCarerClean}及傭人` : mainCarerClean;
 
-      return `求助問題：*
-長者獨居，因${majorEventClean}致自理能力退化，擔心日後未能照顧自己，故欲申請${state.targetService}。
+    const problemSection = isSolo
+      ? `長者獨居，因${majorEventClean}致自理能力退化，擔心日後未能照顧自己，故欲申請${state.targetService}。`
+      : `案主因${majorEventClean}，現時身體及自理能力退化。${
+          state.carerStress === 'high'
+            ? `同住${mainCarerClean}感照顧吃力，擔心日後難以持續照顧案主`
+            : `同住${mainCarerClean}擔心日後難以持續照顧案主`
+        }，故欲為其申請${state.targetService}。`;
 
-家庭圖：
-[插入家庭圖]
-
-背景資料：*
-－ ${jobSentence}
-－ ${livingClean}。
-
-健康狀況（日常獨立及自我照顧能力）：
-－ ${majorEventClean}。
-－ 案主患${diseaseStr}，主要於${hospitalStr}覆診。
-－ 案主家中${state.indoorMobility}，外出則需${state.outdoorMobility}。
-－ ${adlClean}。
-－ 如廁上案主${state.toiletStatus}。
-－ 餐膳上案主可以食用${state.dietType}。
-
-情緒狀況（精神病記錄／暴力傾向／虐待記錄）：
-－ ${cogClean}。
-－ ${emoClean}。
-${sleepSentence}
-
-與護老者或其他親人的關係：
-${formattedOtherFamily || '－ 案主與家人關係疏離。'}
-
-護老者的能力及情緒狀況：
-－ 案主獨居，與家人關係疏離，現時未有正式護老者。${informalLine}
-
-經濟狀況：
-－ 案主正領取${state.allowance}，另有積蓄，暫無經濟困難。
-
-居住狀況：
-－ 家居環境整潔，雜物已妥善放置。
-－ 浴室備有${bathStr}。
-
-支援網絡／對外聯絡／其他機構提供服務：
-${netBlock}
-
-跟進計劃：*
-${followUpServiceLine}
-－ 跟進案主身心狀況`;
-    }
-
-    const hasMaidSupport = state.carerStress === 'low_maid' || state.supportNetwork.includes('傭人');
-    const carerProblemClause = state.carerStress === 'high'
-      ? `同住${state.mainCarer}感照顧吃力，擔心日後難以持續照顧案主`
-      : `同住${state.mainCarer}擔心日後難以持續照顧案主`;
-
-    const preparerTitle = hasMaidSupport ? `${state.mainCarer}及傭人` : state.mainCarer;
-    const dietSentence = state.dietType.startsWith('[待補充')
+    const dietSentence = (isSolo || state.dietType.startsWith('[待補充'))
       ? `－ 餐膳上案主可以食用${state.dietType}。`
       : `－ 餐膳上案主可以食用${state.dietType}，由${preparerTitle}預備。`;
 
-    let carerStressSentence = '';
-    if (state.carerStress === 'high') {
-      carerStressSentence = `${state.mainCarer}表示照顧上感到吃力，照顧壓力較大。`;
-    } else if (state.carerStress === 'low_maid') {
-      carerStressSentence = `有傭人分擔照顧，${state.mainCarer}表示照顧壓力不大。`;
+    const familyRelationSection = isSolo
+      ? (formattedOtherFamily || '－ 案主與家人關係疏離。')
+      : `－ ${mainCarerClean}：同住，為主要照顧者，關係${state.carerRelation}。${formattedOtherFamily ? `\n${formattedOtherFamily}` : ''}`;
+
+    const carerStatusMap = {
+      high: `${mainCarerClean}表示照顧上感到吃力，照顧壓力較大。`,
+      low_maid: `有傭人分擔照顧，${mainCarerClean}表示照顧壓力不大。`,
+      low_coop: `案主尚算配合，${mainCarerClean}表示照顧壓力不大。`
+    };
+
+    const informalClean = cleanLineContent(state.informalSupportNotes);
+    const carerCapacitySection = isSolo
+      ? `－ 案主獨居，與家人關係疏離，現時未有正式護老者。${informalClean ? `\n－ ${informalClean}。` : ''}`
+      : `－ ${mainCarerClean}為主要照顧者，主力照顧案主的起居及日常家務。${carerStatusMap[state.carerStress] || ''}`;
+
+    const followUpLines = buildFollowUpLines(state.targetService, isSolo);
+
+    // 健康狀況統一首兩行順序：第1行引發事件／出入院經過，第2行慢性疾病與覆診醫院
+    return [
+      `求助問題：*\n${problemSection}`,
+      `家庭圖：\n[插入家庭圖]`,
+      `背景資料：*\n－ ${jobSentence}\n－ ${livingClean}。`,
+      `健康狀況（日常獨立及自我照顧能力）：\n－ ${majorEventClean}。\n－ 案主患${diseaseStr}，主要於${hospitalStr}覆診。\n－ 案主家中${state.indoorMobility}，外出則需${state.outdoorMobility}。\n－ ${adlClean}。\n－ 如廁上案主${state.toiletStatus}。\n${dietSentence}`,
+      `情緒狀況（精神病記錄／暴力傾向／虐待記錄）：\n－ ${cogClean}。\n－ ${emoClean}。\n${sleepSentence}`,
+      `與護老者或其他親人的關係：\n${familyRelationSection}`,
+      `護老者的能力及情緒狀況：\n${carerCapacitySection}`,
+      `經濟狀況：\n－ 案主正領取${state.allowance}，另有積蓄，暫無經濟困難。`,
+      `居住狀況：\n－ 家居環境整潔，雜物已妥善放置。\n－ 浴室備有${bathStr}。`,
+      `支援網絡／對外聯絡／其他機構提供服務：\n${netBlock}`,
+      `跟進計劃：*\n${followUpLines.join('\n')}`
+    ].join('\n\n');
+  };
+
+  // 儲存 API 設定（根據「記住 Key」勾選框決定存於 localStorage 或 sessionStorage）
+  const persistApiSettings = (baseUrl, apiKey, slug) => {
+    const remember = el.cbRememberKey.checked;
+    localStorage.setItem(STORAGE_KEYS.URL, baseUrl);
+    localStorage.setItem(STORAGE_KEYS.REMEMBER, remember ? '1' : '0');
+
+    if (remember) {
+      localStorage.setItem(STORAGE_KEYS.KEY, apiKey);
+      sessionStorage.removeItem(STORAGE_KEYS.KEY);
+      if (slug) localStorage.setItem(STORAGE_KEYS.SLUG, slug);
     } else {
-      carerStressSentence = `案主尚算配合，${state.mainCarer}表示照顧壓力不大。`;
+      sessionStorage.setItem(STORAGE_KEYS.KEY, apiKey);
+      localStorage.removeItem(STORAGE_KEYS.KEY);
+      if (slug) sessionStorage.setItem(STORAGE_KEYS.SLUG, slug);
     }
-
-    const extraFamilyLines = formattedOtherFamily ? `\n${formattedOtherFamily}` : '';
-
-    return `求助問題：*
-案主因${majorEventClean}，現時身體及自理能力退化。${carerProblemClause}，故欲為其申請${state.targetService}。
-
-家庭圖：
-[插入家庭圖]
-
-背景資料：*
-－ ${jobSentence}
-－ ${livingClean}。
-
-健康狀況（日常獨立及自我照顧能力）：
-－ 案主患${diseaseStr}，主要於${hospitalStr}覆診。
-－ ${majorEventClean}。
-－ 案主家中${state.indoorMobility}，外出則需${state.outdoorMobility}。
-－ ${adlClean}。
-－ 如廁上案主${state.toiletStatus}。
-${dietSentence}
-
-情緒狀況（精神病記錄／暴力傾向／虐待記錄）：
-－ ${cogClean}。
-－ ${emoClean}。
-${sleepSentence}
-
-與護老者或其他親人的關係：
-－ ${state.mainCarer}：同住，為主要照顧者，關係${state.carerRelation}。${extraFamilyLines}
-
-護老者的能力及情緒狀況：
-－ ${state.mainCarer}為主要照顧者，主力照顧案主的起居及日常家務。${carerStressSentence}
-
-經濟狀況：
-－ 案主正領取${state.allowance}，另有積蓄，暫無經濟困難。
-
-居住狀況：
-－ 家居環境整潔，雜物已妥善放置。
-－ 浴室備有${bathStr}。
-
-支援網絡／對外聯絡／其他機構提供服務：
-${netBlock}
-
-跟進計劃：*
-${followUpServiceLine}
-－ 跟進案主身心狀況
-－ 關顧護老者照顧狀況`;
   };
 
   const handleInstantDraft = () => {
     const state = readCurrentState();
-    el.reportOutput.value = compileReportText(state);
+    const baseDraft = compileReportText(state);
+    const extraClean = cleanLineContent(state.extraNotes);
+    el.reportOutput.value = buildFallbackDraftWithWarning(baseDraft, extraClean);
     el.genStatus.textContent = '⚡ 已產生即時初稿';
   };
 
@@ -1190,12 +1215,7 @@ ${followUpServiceLine}
         el.workspaceSlug.value = preselectSlug;
       }
 
-      localStorage.setItem(STORAGE_KEYS.URL, baseUrl);
-      localStorage.setItem(STORAGE_KEYS.KEY, apiKey);
-      if (el.workspaceSlug.value) {
-        localStorage.setItem(STORAGE_KEYS.SLUG, el.workspaceSlug.value);
-      }
-
+      persistApiSettings(baseUrl, apiKey, el.workspaceSlug.value);
       el.connStatus.textContent = '🟢 已連線';
     } catch (err) {
       el.connStatus.textContent = '🔴 連線失敗';
@@ -1207,8 +1227,19 @@ ${followUpServiceLine}
     }
   };
 
-  // 送交 AnythingLLM：使用獨立 sessionId 隔離記憶，並對齊【輸出結構】標籤
+  const resetAiButtonState = () => {
+    activeAbortController = null;
+    el.btnAiGenerate.classList.remove('btn-danger');
+    el.btnAiGenerate.textContent = '🤖 2. 送交 AnythingLLM (Qwen3-4B) 潤飾生成';
+  };
+
   const handleAiGenerate = async () => {
+    // 若正在生成中，點擊即觸發 AbortController 取消請求
+    if (activeAbortController) {
+      activeAbortController.abort();
+      return;
+    }
+
     const baseUrl = el.apiUrl.value.trim().replace(/\/$/, '');
     const apiKey = el.apiKey.value.trim();
     const slug = el.workspaceSlug.value;
@@ -1220,18 +1251,21 @@ ${followUpServiceLine}
 
     const state = readCurrentState();
     const baseDraft = compileReportText(state);
-    const extraClean = stripTrailingPunctuation(state.extraNotes);
+    const exactNetBlock = buildSupportNetworkBlock(state);
+    const extraClean = cleanLineContent(state.extraNotes);
 
-    const promptForQwen = `請嚴格按照以下【輸出結構】完整輸出11個標準標題及所有條列內容（必須100%保留11個標題名稱、保留「[待補充：...]」字眼，直接由「求助問題：*」開始輸出，切勿刪減任何標題）：
+    const promptForQwen = `請嚴格按照以下【輸出結構】完整輸出11個標準標題及所有條列內容（必須100%保留11個標題名稱、保留「[待補充：...]」字眼，直接由「求助問題：*」開始輸出，切勿刪減任何標題，且「支援網絡／對外聯絡／其他機構提供服務：」一欄必須原字保留）：
 
 【輸出結構】
 ${baseDraft}${extraClean ? `\n\n【社工速記內容（請將此補充自然融入上述對應欄位中，保持11個標題結構不變）】：\n${extraClean}。` : ''}`;
 
-    try {
-      el.btnAiGenerate.disabled = true;
-      el.genStatus.textContent = '🤖 Qwen3-4B 生成中 (約需 2-3 分鐘)...';
-      el.reportOutput.value = '正在由本機 Qwen3-4B-Instruct 生成報告中，請稍候...\n\n（提示：您亦隨時可點擊左側「⚡ 1. 即時組合標準初稿」取得 0 秒免等待版本）';
+    activeAbortController = new AbortController();
+    el.btnAiGenerate.classList.add('btn-danger');
+    el.btnAiGenerate.textContent = '⏹️ 取消 AI 生成 (保留目前表單)';
+    el.genStatus.textContent = '🤖 Qwen3-4B 生成中 (約需 2-3 分鐘)...';
+    el.reportOutput.value = '正在由本機 Qwen3-4B-Instruct 生成報告中，請稍候...\n\n（提示：隨時可點擊左下方紅色「⏹️ 取消 AI 生成」中斷等待，或點擊「⚡ 即時組合標準初稿」取得 0 秒免等待版本）';
 
+    try {
       const response = await fetch(`${baseUrl}/api/v1/workspace/${slug}/chat`, {
         method: 'POST',
         headers: {
@@ -1242,7 +1276,8 @@ ${baseDraft}${extraClean ? `\n\n【社工速記內容（請將此補充自然融
           message: promptForQwen,
           mode: 'chat',
           sessionId: `edecc-case-${Date.now()}`
-        })
+        }),
+        signal: activeAbortController.signal
       });
 
       if (!response.ok) {
@@ -1254,23 +1289,27 @@ ${baseDraft}${extraClean ? `\n\n【社工速記內容（請將此補充自然融
         .replace(/<think>[\s\S]*?<\/think>/gi, '')
         .trim();
 
-      // 安全防線：若模型輸出少於8個標準標題，自動回退至完整確定性初稿
-      const requiredHeaders = ['求助問題：*', '背景資料：*', '健康狀況', '情緒狀況', '經濟狀況：', '居住狀況：', '跟進計劃：*'];
-      const hasAllHeaders = requiredHeaders.every(h => cleanedOutput.includes(h));
+      const hasAllHeaders = REQUIRED_HEADERS.every(h => cleanedOutput.includes(h));
 
       if (!hasAllHeaders) {
-        el.reportOutput.value = baseDraft;
+        el.reportOutput.value = buildFallbackDraftWithWarning(baseDraft, extraClean);
         el.genStatus.textContent = '⚡ 已自動鎖定標準11項格式';
       } else {
-        el.reportOutput.value = cleanedOutput;
+        const lockedOutput = lockSupportNetworkSection(cleanedOutput, exactNetBlock);
+        el.reportOutput.value = lockedOutput;
         el.genStatus.textContent = '✅ AI 潤飾完成';
       }
     } catch (err) {
-      el.genStatus.textContent = '⚠️ AI 連線異常 (已切換為標準初稿)';
-      el.reportOutput.value = baseDraft;
-      alert(`呼叫 AnythingLLM 失敗 (${err.message})，系統已自動為您輸出零幻覺標準初稿。`);
+      if (err.name === 'AbortError') {
+        el.reportOutput.value = buildFallbackDraftWithWarning(baseDraft, extraClean);
+        el.genStatus.textContent = '⏹️ 已取消 AI 生成 (顯示標準初稿)';
+      } else {
+        el.genStatus.textContent = '⚠️ AI 連線異常 (已切換為標準初稿)';
+        el.reportOutput.value = buildFallbackDraftWithWarning(baseDraft, extraClean);
+        alert(`呼叫 AnythingLLM 失敗 (${err.message})，系統已自動為您輸出零幻覺標準初稿。`);
+      }
     } finally {
-      el.btnAiGenerate.disabled = false;
+      resetAiButtonState();
     }
   };
 
@@ -1288,15 +1327,19 @@ ${baseDraft}${extraClean ? `\n\n【社工速記內容（請將此補充自然融
   };
 
   const bindEvents = () => {
+    // 追蹤使用者是否手動修改過 ADL 欄位
+    el.adlStatus.addEventListener('input', () => {
+      el.adlStatus.dataset.dirty = 'true';
+    });
+
+    // 模式切換（若未手動修改過 ADL，則自動切換為對應模式預設值）
     document.querySelectorAll('input[name="caseMode"]').forEach(radio => {
       radio.addEventListener('change', (e) => {
         const newMode = e.target.value;
         updateModeUI(newMode);
         el.netFamily.checked = (newMode === 'family');
-        if (newMode === 'solo' && el.adlStatus.value === DEFAULT_STATE.adlStatus) {
-          el.adlStatus.value = '案主ADL及部分IADL可自理';
-        } else if (newMode === 'family' && el.adlStatus.value === '案主ADL及部分IADL可自理') {
-          el.adlStatus.value = DEFAULT_STATE.adlStatus;
+        if (!el.adlStatus.dataset.dirty) {
+          el.adlStatus.value = (newMode === 'solo') ? SOLO_DEFAULT_ADL : DEFAULT_STATE.adlStatus;
         }
       });
     });
@@ -1323,9 +1366,32 @@ ${baseDraft}${extraClean ? `\n\n【社工速記內容（請將此補充自然融
       if (isCustom) el.hospitalCustom.focus();
     });
 
+    // 照顧壓力與「傭人」勾選雙向智慧聯動
     el.carerStress.addEventListener('change', () => {
       if (el.carerStress.value === 'low_maid') {
-        el.netMaid.checked = true;
+        if (!el.netMaid.checked) {
+          el.netMaid.checked = true;
+          maidAutoCheckedByStress = true;
+        }
+      } else if (maidAutoCheckedByStress) {
+        el.netMaid.checked = false;
+        maidAutoCheckedByStress = false;
+      }
+    });
+
+    el.netMaid.addEventListener('change', () => {
+      maidAutoCheckedByStress = false;
+    });
+
+    // 切換「記住 Key」勾選框時即時遷移儲存位置
+    el.cbRememberKey.addEventListener('change', () => {
+      const baseUrl = el.apiUrl.value.trim().replace(/\/$/, '');
+      const apiKey = el.apiKey.value.trim();
+      const slug = el.workspaceSlug.value;
+      if (apiKey) {
+        persistApiSettings(baseUrl, apiKey, slug);
+      } else {
+        localStorage.setItem(STORAGE_KEYS.REMEMBER, el.cbRememberKey.checked ? '1' : '0');
       }
     });
 
@@ -1350,7 +1416,9 @@ ${baseDraft}${extraClean ? `\n\n【社工速記內容（請將此補充自然融
 
     el.btnLoadWorkspaces.addEventListener('click', () => loadWorkspaces());
     el.workspaceSlug.addEventListener('change', () => {
-      localStorage.setItem(STORAGE_KEYS.SLUG, el.workspaceSlug.value);
+      const baseUrl = el.apiUrl.value.trim().replace(/\/$/, '');
+      const apiKey = el.apiKey.value.trim();
+      persistApiSettings(baseUrl, apiKey, el.workspaceSlug.value);
     });
 
     el.btnInstantDraft.addEventListener('click', handleInstantDraft);
@@ -1364,8 +1432,15 @@ ${baseDraft}${extraClean ? `\n\n【社工速記內容（請將此補充自然融
     applyState(DEFAULT_STATE);
 
     const savedUrl = localStorage.getItem(STORAGE_KEYS.URL);
-    const savedKey = localStorage.getItem(STORAGE_KEYS.KEY);
-    const savedSlug = localStorage.getItem(STORAGE_KEYS.SLUG);
+    const savedRemember = localStorage.getItem(STORAGE_KEYS.REMEMBER) === '1';
+    el.cbRememberKey.checked = savedRemember;
+
+    const savedKey = savedRemember
+      ? localStorage.getItem(STORAGE_KEYS.KEY)
+      : sessionStorage.getItem(STORAGE_KEYS.KEY);
+    const savedSlug = savedRemember
+      ? localStorage.getItem(STORAGE_KEYS.SLUG)
+      : sessionStorage.getItem(STORAGE_KEYS.SLUG);
 
     if (savedUrl) el.apiUrl.value = savedUrl;
     if (savedKey) {
